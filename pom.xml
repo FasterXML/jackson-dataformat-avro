@@ -54,6 +54,11 @@ abstractions.
       <artifactId>jackson-core</artifactId>
       <version>2.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>1.6.3</version>
+    </dependency>
 
      <!-- and for testing, JUnit is needed; as well as databinder, annotations -->
     <dependency>

@@ -1,11 +1,9 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Collections;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
