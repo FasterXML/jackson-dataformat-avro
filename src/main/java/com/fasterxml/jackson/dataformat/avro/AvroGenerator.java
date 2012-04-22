@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
@@ -48,9 +49,6 @@ public class AvroGenerator extends GeneratorBase
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     };
-
-    protected final static long MIN_INT_AS_LONG = (long) Integer.MIN_VALUE;
-    protected final static long MAX_INT_AS_LONG = (long) Integer.MAX_VALUE;
     
     /*
     /**********************************************************
@@ -65,7 +63,7 @@ public class AvroGenerator extends GeneratorBase
      * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
      * are enabled.
      */
-    protected int _yamlFeatures;
+    protected int _avroFeatures;
 
     protected AvroSchema _schema;
     
@@ -84,19 +82,32 @@ public class AvroGenerator extends GeneratorBase
     /* Life-cycle
     /**********************************************************
      */
-    public AvroGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
+    public AvroGenerator(IOContext ctxt, int jsonFeatures, int avroFeatures,
             ObjectCodec codec, OutputStream output,
             AvroSchema schema, GenericDatumWriter<GenericRecord> datumWriter)
         throws IOException
     {
         super(jsonFeatures, codec);
         _ioContext = ctxt;
-        _yamlFeatures = yamlFeatures;
+        _avroFeatures = avroFeatures;
         _output = output;
         _schema = schema;
         _datumWriter = datumWriter;
     }
 
+    /*
+                private BinaryEncoder encoder;
+
+                public byte[] serialize(GenericRecord data) throws IOException
+                {
+                  ByteArrayOutputStream out = outputStream(data);
+                  encoder = ENCODER_FACTORY.binaryEncoder(out, encoder);
+                  WRITER.write(data, encoder);
+                  encoder.flush();
+                  return out.toByteArray();
+                }
+     */
+    
     /*                                                                                       
     /**********************************************************                              
     /* Versioned                                                                             
@@ -218,17 +229,17 @@ public class AvroGenerator extends GeneratorBase
      */
 
     public AvroGenerator enable(Feature f) {
-        _yamlFeatures |= f.getMask();
+        _avroFeatures |= f.getMask();
         return this;
     }
 
     public AvroGenerator disable(Feature f) {
-        _yamlFeatures &= ~f.getMask();
+        _avroFeatures &= ~f.getMask();
         return this;
     }
 
     public final boolean isEnabled(Feature f) {
-        return (_yamlFeatures & f.getMask()) != 0;
+        return (_avroFeatures & f.getMask()) != 0;
     }
 
     public AvroGenerator configure(Feature f, boolean state) {
@@ -440,11 +451,6 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public void writeNumber(long l) throws IOException, JsonGenerationException
     {
-        // First: maybe 32 bits is enough?
-        if (l <= MAX_INT_AS_LONG && l >= MIN_INT_AS_LONG) {
-            writeNumber((int) l);
-            return;
-        }
         _verifyValueWrite("write number");
 //        _writeScalar(String.valueOf(l), "long", STYLE_SCALAR);
     }

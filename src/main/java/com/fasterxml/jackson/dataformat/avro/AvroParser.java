@@ -1,10 +1,10 @@
 package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.*;
-import java.util.regex.Pattern;
 
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.ParserBase;
@@ -48,13 +48,6 @@ public class AvroParser extends ParserBase
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     }
-
-    // note: does NOT include '0', handled separately
-    protected final static Pattern PATTERN_INT = Pattern.compile(
-            "-?[1-9][0-9]*");
-
-    protected final static Pattern PATTERN_FLOAT = Pattern.compile(
-            "[-+]?([0-9][0-9_]*)?\\.[0-9.]*([eE][-+][0-9]+)?");
     
     /*
     /**********************************************************************
@@ -67,7 +60,7 @@ public class AvroParser extends ParserBase
      */
     protected ObjectCodec _objectCodec;
 
-    protected int _yamlFeatures;
+    protected int _avroFeatures;
 
     protected AvroSchema _schema;
     
@@ -103,18 +96,27 @@ public class AvroParser extends ParserBase
     /**********************************************************************
      */
     
-    public AvroParser(IOContext ctxt, BufferRecycler br, int parserFeatures, int csvFeatures,
+    public AvroParser(IOContext ctxt, BufferRecycler br, int parserFeatures, int avroFeatures,
             ObjectCodec codec, InputStream in, 
             AvroSchema schema, GenericDatumReader<GenericRecord> datumReader)
     {
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
-        _yamlFeatures = csvFeatures;
+        _avroFeatures = avroFeatures;
         _input = in;
         _schema = schema;
         _datumReader = datumReader;
     }
 
+    /*
+                private BinaryDecoder decoder;
+
+                public GenericRecord deserialize(byte[] array) throws Exception
+                {
+                  decoder = DECODER_FACTORY.binaryDecoder(array, decoder);
+                  return READER.read(null, decoder);
+                }
+     */
 
     @Override
     public ObjectCodec getCodec() {
@@ -124,6 +126,11 @@ public class AvroParser extends ParserBase
     @Override
     public void setCodec(ObjectCodec c) {
         _objectCodec = c;
+    }
+
+    @Override
+    public Object getInputSource() {
+        return _input;
     }
     
     /*                                                                                       
@@ -177,7 +184,7 @@ public class AvroParser extends ParserBase
      */
     public JsonParser enable(AvroParser.Feature f)
     {
-        _yamlFeatures |= f.getMask();
+        _avroFeatures |= f.getMask();
         return this;
     }
 
@@ -187,7 +194,7 @@ public class AvroParser extends ParserBase
      */
     public JsonParser disable(AvroParser.Feature f)
     {
-        _yamlFeatures &= ~f.getMask();
+        _avroFeatures &= ~f.getMask();
         return this;
     }
 
@@ -210,7 +217,7 @@ public class AvroParser extends ParserBase
      * is enabled.
      */
     public boolean isEnabled(AvroParser.Feature f) {
-        return (_yamlFeatures & f.getMask()) != 0;
+        return (_avroFeatures & f.getMask()) != 0;
     }
 
     @Override
