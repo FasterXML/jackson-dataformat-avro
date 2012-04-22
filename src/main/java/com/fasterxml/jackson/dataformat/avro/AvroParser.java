@@ -1,8 +1,10 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.regex.Pattern;
+
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.ParserBase;
@@ -67,12 +69,18 @@ public class AvroParser extends ParserBase
 
     protected int _yamlFeatures;
 
+    protected AvroSchema _schema;
+    
     /*
     /**********************************************************************
     /* Input sources
     /**********************************************************************
      */
 
+    final protected InputStream _input;
+
+    protected GenericDatumReader<GenericRecord> _datumReader;
+    
     /*
     /**********************************************************************
     /* State
@@ -95,13 +103,16 @@ public class AvroParser extends ParserBase
     /**********************************************************************
      */
     
-    public AvroParser(IOContext ctxt, BufferRecycler br,
-            int parserFeatures, int csvFeatures,
-            ObjectCodec codec, Reader reader)
+    public AvroParser(IOContext ctxt, BufferRecycler br, int parserFeatures, int csvFeatures,
+            ObjectCodec codec, InputStream in, 
+            AvroSchema schema, GenericDatumReader<GenericRecord> datumReader)
     {
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
         _yamlFeatures = csvFeatures;
+        _input = in;
+        _schema = schema;
+        _datumReader = datumReader;
     }
 
 
@@ -202,7 +213,32 @@ public class AvroParser extends ParserBase
         return (_yamlFeatures & f.getMask()) != 0;
     }
 
-//    @Override public CsvSchema getSchema() 
+    @Override
+    public boolean canUseSchema(FormatSchema schema) {
+        return (schema instanceof AvroSchema);
+    }
+
+    @Override public AvroSchema getSchema() {
+        return _schema;
+    }
+    
+    @Override
+    public void setSchema(FormatSchema schema)
+    {
+        if (schema instanceof AvroSchema) {
+            _setSchema((AvroSchema) schema);
+            return;
+        }
+        super.setSchema(schema);
+    }
+
+    private void _setSchema(AvroSchema schema)
+    {
+        if (_schema != schema) {
+            _schema = schema;
+            _datumReader = new GenericDatumReader<GenericRecord>(schema.getAvroSchema());
+        }
+    }
     
     /*
     /**********************************************************

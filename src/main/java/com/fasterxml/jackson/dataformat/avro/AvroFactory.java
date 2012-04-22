@@ -3,6 +3,9 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.io.*;
 import java.net.URL;
 
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.EncoderFactory;
+
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.format.InputAccessor;
 import com.fasterxml.jackson.core.format.MatchStrength;
@@ -36,6 +39,16 @@ public class AvroFactory extends JsonFactory
 
     /*
     /**********************************************************
+    /* Helper objects
+    /**********************************************************
+     */
+    
+    protected final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
+
+    protected final EncoderFactory ENCODER_FACTORY= EncoderFactory.get();
+    
+    /*
+    /**********************************************************
     /* Factory construction, configuration
     /**********************************************************
      */
@@ -67,7 +80,7 @@ public class AvroFactory extends JsonFactory
     
     /*
     /**********************************************************
-    /* Format detection functionality (since 1.8)
+    /* Format detection functionality
     /**********************************************************
      */
     
@@ -78,7 +91,7 @@ public class AvroFactory extends JsonFactory
     }
     
     /**
-     * Sub-classes need to override this method (as of 1.8)
+     * Sub-classes need to override this method
      */
     @Override
     public MatchStrength hasFormat(InputAccessor acc) throws IOException

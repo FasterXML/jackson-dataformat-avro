@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -63,12 +66,18 @@ public class AvroGenerator extends GeneratorBase
      * are enabled.
      */
     protected int _yamlFeatures;
+
+    protected AvroSchema _schema;
     
     /*
     /**********************************************************
     /* Output state
     /**********************************************************
      */
+
+    final protected OutputStream _output;
+
+    protected GenericDatumWriter<GenericRecord> _datumWriter;
     
     /*
     /**********************************************************
@@ -76,12 +85,16 @@ public class AvroGenerator extends GeneratorBase
     /**********************************************************
      */
     public AvroGenerator(IOContext ctxt, int jsonFeatures, int yamlFeatures,
-            ObjectCodec codec)
+            ObjectCodec codec, OutputStream output,
+            AvroSchema schema, GenericDatumWriter<GenericRecord> datumWriter)
         throws IOException
     {
         super(jsonFeatures, codec);
         _ioContext = ctxt;
         _yamlFeatures = yamlFeatures;
+        _output = output;
+        _schema = schema;
+        _datumWriter = datumWriter;
     }
 
     /*                                                                                       
@@ -121,17 +134,36 @@ public class AvroGenerator extends GeneratorBase
 
     @Override
     public Object getOutputTarget() {
-//        return _writer;
-        return null;
+        return _output;
     }
 
     @Override
     public boolean canUseSchema(FormatSchema schema) {
-        return false;
+        return (schema instanceof AvroSchema);
     }
     
-    //@Override public void setSchema(FormatSchema schema)
+    @Override public AvroSchema getSchema() {
+        return _schema;
+    }
+    
+    @Override
+    public void setSchema(FormatSchema schema)
+    {
+        if (schema instanceof AvroSchema) {
+            _setSchema((AvroSchema) schema);
+            return;
+        }
+        super.setSchema(schema);
+    }
 
+    private void _setSchema(AvroSchema schema)
+    {
+        if (_schema != schema) {
+            _schema = schema;
+            _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
+        }
+    }
+    
     /*
     /**********************************************************************
     /* Overridden methods; writing field names
@@ -217,14 +249,14 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public final void flush() throws IOException
     {
-//        _writer.flush();
+        _output.flush();
     }
     
     @Override
     public void close() throws IOException
     {
         super.close();
-//        _writer.close();
+        _output.close();
     }
 
     /*

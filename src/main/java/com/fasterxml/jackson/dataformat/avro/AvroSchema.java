@@ -19,4 +19,6 @@ public class AvroSchema implements FormatSchema
     public String getSchemaType() {
         return TYPE_ID;
     }
+
+    public Schema getAvroSchema() { return _avroSchema; }
 }
