@@ -3,6 +3,8 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.io.*;
 import java.net.URL;
 
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 
@@ -36,16 +38,6 @@ public class AvroFactory extends JsonFactory
     protected int _avroParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
 
     protected int _avroGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
-
-    /*
-    /**********************************************************
-    /* Helper objects
-    /**********************************************************
-     */
-    
-    protected final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
-
-    protected final EncoderFactory ENCODER_FACTORY= EncoderFactory.get();
     
     /*
     /**********************************************************
@@ -96,7 +88,8 @@ public class AvroFactory extends JsonFactory
     @Override
     public MatchStrength hasFormat(InputAccessor acc) throws IOException
     {
-        return AvroParserBootstrapper.hasSmileFormat(acc);
+        // TODO, if possible... probably isn't?
+        return MatchStrength.INCONCLUSIVE;
     }
     
     /*
@@ -280,9 +273,8 @@ public class AvroFactory extends JsonFactory
     protected AvroParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new AvroParserBootstrapper(ctxt, in).constructParser(_parserFeatures,
-                        _avroParserFeatures, isEnabled(JsonFactory.Feature.INTERN_FIELD_NAMES),
-                        _objectCodec, _rootByteSymbols);
+        return new AvroParser(ctxt, _parserFeatures, _avroParserFeatures,
+                _objectCodec, in);
     }
 
     /**
@@ -304,10 +296,8 @@ public class AvroFactory extends JsonFactory
     protected AvroParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new AvroParserBootstrapper(ctxt, data, offset, len).constructParser(
-                _parserFeatures, _avroParserFeatures,
-                isEnabled(JsonFactory.Feature.INTERN_FIELD_NAMES),
-                _objectCodec, _rootByteSymbols);
+        return new AvroParser(ctxt, _parserFeatures, _avroParserFeatures,
+                _objectCodec, data, offset, len);
     }
 
     /**

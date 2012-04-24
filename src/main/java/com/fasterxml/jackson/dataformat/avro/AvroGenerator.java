@@ -76,6 +76,10 @@ public class AvroGenerator extends GeneratorBase
     final protected OutputStream _output;
 
     protected GenericDatumWriter<GenericRecord> _datumWriter;
+
+    protected BinaryEncoder _encoder;
+    
+    protected String _currentField;
     
     /*
     /**********************************************************
@@ -83,16 +87,13 @@ public class AvroGenerator extends GeneratorBase
     /**********************************************************
      */
     public AvroGenerator(IOContext ctxt, int jsonFeatures, int avroFeatures,
-            ObjectCodec codec, OutputStream output,
-            AvroSchema schema, GenericDatumWriter<GenericRecord> datumWriter)
+            ObjectCodec codec, OutputStream output)
         throws IOException
     {
         super(jsonFeatures, codec);
         _ioContext = ctxt;
         _avroFeatures = avroFeatures;
         _output = output;
-        _schema = schema;
-        _datumWriter = datumWriter;
     }
 
     /*
@@ -166,14 +167,6 @@ public class AvroGenerator extends GeneratorBase
         }
         super.setSchema(schema);
     }
-
-    private void _setSchema(AvroSchema schema)
-    {
-        if (_schema != schema) {
-            _schema = schema;
-            _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
-        }
-    }
     
     /*
     /**********************************************************************
@@ -219,7 +212,7 @@ public class AvroGenerator extends GeneratorBase
     private final void _writeFieldName(String name)
         throws IOException, JsonGenerationException
     {
-//        _writeScalar(name, "string", STYLE_NAME);
+        _currentField = name;
     }
     
     /*
@@ -521,5 +514,27 @@ public class AvroGenerator extends GeneratorBase
     @Override
     protected void _releaseBuffers() {
         // nothing special to do...
+    }
+
+    /*
+    /**********************************************************************
+    /* Helper methods
+    /**********************************************************************
+     */
+    
+    private void _setSchema(AvroSchema schema)
+    {
+        if (_schema != schema) {
+            _schema = schema;
+            _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
+        }
+    }
+
+    protected void _init()
+    {
+        if (_schema == null) {
+            throw new IllegalStateException("Can not parse: no Avro Schema set for generator");
+        }
+        _encoder = _schema.encoder(_output);
     }
 }
