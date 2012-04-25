@@ -9,6 +9,7 @@ import org.apache.avro.io.BinaryDecoder;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.json.JsonReadContext;
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
 
 public class AvroParser extends ParserBase
@@ -81,6 +82,8 @@ public class AvroParser extends ParserBase
     /**********************************************************************
      */
 
+    protected AvroReadContext _avroCtxt;
+    
     /**
      * We need to keep track of text values.
      */
@@ -104,6 +107,7 @@ public class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = in;
+        _avroCtxt = AvroReadContext.createRootContext();
     }
 
     public AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
@@ -313,7 +317,18 @@ public class AvroParser extends ParserBase
         if (_currToken == JsonToken.FIELD_NAME) {
             return _currentFieldName;
         }
-        return super.getCurrentName();
+        return _avroCtxt.getCurrentName();
+    }
+
+    @Override
+    public void overrideCurrentName(String name)
+    {
+        // Simple, but need to look for START_OBJECT/ARRAY's "off-by-one" thing:
+        JsonReadContext ctxt = _parsingContext;
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            ctxt = ctxt.getParent();
+        }
+        ctxt.setCurrentName(name);
     }
     
     @Override
