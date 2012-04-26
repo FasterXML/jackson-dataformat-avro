@@ -94,7 +94,7 @@ public class AvroReadContext extends JsonStreamContext
 
     /*
     /**********************************************************
-    /* Abstract method implementation
+    /* Accessors
     /**********************************************************
      */
 
@@ -104,6 +104,8 @@ public class AvroReadContext extends JsonStreamContext
     @Override
     public final AvroReadContext getParent() { return _parent; }
 
+    public GenericContainer getContainer() { return _currentContainer; }
+    
     /*
     /**********************************************************
     /* Extended API
