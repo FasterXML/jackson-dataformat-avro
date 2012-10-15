@@ -5,7 +5,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericArray;
+import org.apache.avro.generic.GenericContainer;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryEncoder;
 
@@ -65,7 +68,7 @@ public class AvroGenerator extends GeneratorBase
      */
     protected int _avroFeatures;
 
-    protected AvroSchema _schema;
+    protected AvroSchema _rootSchema;
     
     /*
     /**********************************************************
@@ -75,11 +78,21 @@ public class AvroGenerator extends GeneratorBase
 
     final protected OutputStream _output;
 
-    protected GenericDatumWriter<GenericRecord> _datumWriter;
+//    protected GenericDatumWriter<GenericRecord> _datumWriter;
 
     protected BinaryEncoder _encoder;
     
     protected String _currentField;
+
+    protected GenericContainer _currContainer;
+
+    /**
+     * Active Avro Schema for the current container (record or array)
+     */
+    protected Schema _currSchema;
+    
+    // Custom type for context:
+    protected AvroWriteContext _avroContext;
     
     /*
     /**********************************************************
@@ -94,8 +107,28 @@ public class AvroGenerator extends GeneratorBase
         _ioContext = ctxt;
         _avroFeatures = avroFeatures;
         _output = output;
+        _avroContext = AvroWriteContext.createRootContext();
     }
 
+    public void setSchema(AvroSchema schema)
+    {
+        if (_rootSchema == schema) {
+            return;
+        }
+        _rootSchema = schema;
+        _encoder = _rootSchema.encoder(_output);
+//        _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
+    }
+    /*
+    protected void _init()
+    {
+        if (_schema == null) {
+            throw new IllegalStateException("Can not generate: no Avro Schema set for generator");
+        }
+        _encoder = _schema.encoder(_output);
+    }
+    */
+    
     /*
                 private BinaryEncoder encoder;
 
@@ -155,17 +188,17 @@ public class AvroGenerator extends GeneratorBase
     }
     
     @Override public AvroSchema getSchema() {
-        return _schema;
+        return _rootSchema;
     }
     
     @Override
     public void setSchema(FormatSchema schema)
     {
-        if (schema instanceof AvroSchema) {
-            _setSchema((AvroSchema) schema);
-            return;
+        if (!(schema instanceof AvroSchema)) {
+            throw new IllegalArgumentException("Can not use FormatSchema of type "
+                    +schema.getClass().getName());
         }
-        super.setSchema(schema);
+        setSchema((AvroSchema) schema);
     }
     
     /*
@@ -181,7 +214,7 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public final void writeFieldName(String name) throws IOException, JsonGenerationException
     {
-        if (_writeContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (_avroContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
         _writeFieldName(name);
@@ -192,7 +225,7 @@ public class AvroGenerator extends GeneratorBase
         throws IOException, JsonGenerationException
     {
         // Object is a value, need to verify it's allowed
-        if (_writeContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (_avroContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
         _writeFieldName(name.getValue());
@@ -202,7 +235,7 @@ public class AvroGenerator extends GeneratorBase
     public final void writeStringField(String fieldName, String value)
         throws IOException, JsonGenerationException
     {
-        if (_writeContext.writeFieldName(fieldName) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        if (_avroContext.writeFieldName(fieldName) == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
         _writeFieldName(fieldName);
@@ -269,11 +302,27 @@ public class AvroGenerator extends GeneratorBase
     /**********************************************************
      */
     
+    @SuppressWarnings("unchecked")
     @Override
     public final void writeStartArray() throws IOException, JsonGenerationException
     {
         _verifyValueWrite("start an array");
-        _writeContext = _writeContext.createChildArrayContext();
+        Schema schema;
+        GenericArray<Object> newArray;
+        if (_avroContext.inObject()) {
+            schema = _findSchemaForCurrentField();
+            newArray = new GenericData.Array<Object>(10, schema);
+            ((GenericRecord) _currContainer).put(_currentField, newArray);
+        } else if (_avroContext.inArray()) {
+            schema = _currSchema.getElementType();
+            newArray = new GenericData.Array<Object>(10, schema);
+            ((GenericArray<Object>) _currContainer).add(newArray);
+        } else {
+            schema = _rootSchema.getAvroSchema();
+            newArray = new GenericData.Array<Object>(10, schema);
+        }
+        _currContainer = newArray;
+        _avroContext = _avroContext.createChildArrayContext(newArray);
         // note: can NOT be implicit, to avoid having to specify tag
 //        _emitter.emit(new SequenceStartEvent(/*anchor*/null, /*tag*/null, /*implicit*/ true,  null, null, style));
     }
@@ -281,28 +330,37 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public final void writeEndArray() throws IOException, JsonGenerationException
     {
-        if (!_writeContext.inArray()) {
-            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
+        if (!_avroContext.inArray()) {
+            _reportError("Current context not an ARRAY but "+_avroContext.getTypeDesc());
         }
-        _writeContext = _writeContext.getParent();
+        _avroContext = _avroContext.getParent();
 //        _emitter.emit(new SequenceEndEvent(null, null));
     }
 
     @Override
     public final void writeStartObject() throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("start an object");
-        _writeContext = _writeContext.createChildObjectContext();
+        // Starting the root Object?
+        if (_avroContext.inRoot()) {
+            _currRecord = new GenericData.Record(_rootSchema.getAvroSchema());
+        } else {
+            _verifyValueWrite("start an object");
+            
+            // Must find schema for Object field...
+            Schema.Field f = _sche
+            
+            _avroContext = _avroContext.createChildObjectContext();
 //        _emitter.emit(new MappingStartEvent(/* anchor */null, null, //TAG_OBJECT,
+        }
     }
 
     @Override
     public final void writeEndObject() throws IOException, JsonGenerationException
     {
-        if (!_writeContext.inObject()) {
-            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
+        if (!_avroContext.inObject()) {
+            _reportError("Current context not an object but "+_avroContext.getTypeDesc());
         }
-        _writeContext = _writeContext.getParent();
+        _avroContext = _avroContext.getParent();
 //        _emitter.emit(new MappingEndEvent(null, null));
     }
     
@@ -320,7 +378,7 @@ public class AvroGenerator extends GeneratorBase
             return;
         }
         _verifyValueWrite("write String value");
-//        _writeScalar(text, "string", STYLE_STRING);
+        _currRecord.put(_currentField, text);
     }
 
     @Override
@@ -409,7 +467,14 @@ public class AvroGenerator extends GeneratorBase
         if (offset > 0 || (offset+len) != data.length) {
             data = Arrays.copyOfRange(data, offset, offset+len);
         }
-//        String encoded = b64variant.encode(data);
+        final int end = offset+len;
+        if (offset != 0 || end != data.length) {
+            _currRecord.put(_currentField, Arrays.copyOfRange(data, offset, end));
+        } else {
+            _currRecord.put(_currentField, data);
+        }
+
+        //        String encoded = b64variant.encode(data);
 //        _writeScalar(encoded, "byte[]", STYLE_BASE64);
     }
 
@@ -423,7 +488,7 @@ public class AvroGenerator extends GeneratorBase
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write boolean value");
-//        _writeScalar(state ? "true" : "false", "bool", STYLE_SCALAR);
+        _currRecord.put(_currentField, state ? Boolean.TRUE : Boolean.FALSE);
     }
 
     @Override
@@ -431,21 +496,21 @@ public class AvroGenerator extends GeneratorBase
     {
         _verifyValueWrite("write null value");
         // no real type for this, is there?
-//        _writeScalar("null", "object", STYLE_SCALAR);
+        _currRecord.put(_currentField, null);
     }
 
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-//        _writeScalar(String.valueOf(i), "int", STYLE_SCALAR);
+        _currRecord.put(_currentField, Integer.valueOf(i));
     }
 
     @Override
     public void writeNumber(long l) throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-//        _writeScalar(String.valueOf(l), "long", STYLE_SCALAR);
+        _currRecord.put(_currentField, Long.valueOf(l));
     }
 
     @Override
@@ -456,21 +521,21 @@ public class AvroGenerator extends GeneratorBase
             return;
         }
         _verifyValueWrite("write number");
-//        _writeScalar(String.valueOf(v.toString()), "java.math.BigInteger", STYLE_SCALAR);
+        _currRecord.put(_currentField, v);
     }
     
     @Override
     public void writeNumber(double d) throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-//        _writeScalar(String.valueOf(d), "double", STYLE_SCALAR);
+        _currRecord.put(_currentField, Double.valueOf(d));
     }    
 
     @Override
     public void writeNumber(float f) throws IOException, JsonGenerationException
     {
         _verifyValueWrite("write number");
-//        _writeScalar(String.valueOf(f), "float", STYLE_SCALAR);
+        _currRecord.put(_currentField, Float.valueOf(f));
     }
 
     @Override
@@ -481,18 +546,13 @@ public class AvroGenerator extends GeneratorBase
             return;
         }
         _verifyValueWrite("write number");
-//        _writeScalar(dec.toString(), "java.math.BigDecimal", STYLE_SCALAR);
+        _currRecord.put(_currentField, dec);
     }
 
     @Override
     public void writeNumber(String encodedValue) throws IOException,JsonGenerationException, UnsupportedOperationException
     {
-        if (encodedValue == null) {
-            writeNull();
-            return;
-        }
-        _verifyValueWrite("write number");
-//        _writeScalar(encodedValue, "number", STYLE_SCALAR);
+        writeString(encodedValue);
     }
 
     /*
@@ -505,7 +565,7 @@ public class AvroGenerator extends GeneratorBase
     protected final void _verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException
     {
-        int status = _writeContext.writeValue();
+        int status = _avroContext.writeValue();
         if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
             _reportError("Can not "+typeMsg+", expecting field name");
         }
@@ -517,24 +577,8 @@ public class AvroGenerator extends GeneratorBase
     }
 
     /*
-    /**********************************************************************
+    /**********************************************************
     /* Helper methods
-    /**********************************************************************
+    /**********************************************************
      */
-    
-    private void _setSchema(AvroSchema schema)
-    {
-        if (_schema != schema) {
-            _schema = schema;
-            _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
-        }
-    }
-
-    protected void _init()
-    {
-        if (_schema == null) {
-            throw new IllegalStateException("Can not parse: no Avro Schema set for generator");
-        }
-        _encoder = _schema.encoder(_output);
-    }
 }

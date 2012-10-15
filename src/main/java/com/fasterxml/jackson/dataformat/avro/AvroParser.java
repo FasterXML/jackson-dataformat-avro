@@ -2,6 +2,7 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.*;
 
+import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
@@ -75,6 +76,10 @@ public class AvroParser extends ParserBase
     protected BinaryDecoder _decoder;
     
     protected GenericDatumReader<GenericRecord> _datumReader;
+    
+    protected GenericRecord _currentRecord;
+
+    protected GenericArray<?> _currentArray;
     
     /*
     /**********************************************************************

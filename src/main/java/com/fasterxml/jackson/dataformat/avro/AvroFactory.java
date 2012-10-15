@@ -3,11 +3,6 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.io.*;
 import java.net.URL;
 
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.EncoderFactory;
-
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.format.InputAccessor;
 import com.fasterxml.jackson.core.format.MatchStrength;
@@ -329,7 +324,8 @@ public class AvroFactory extends JsonFactory
         throws IOException
     {
         int feats = _avroGeneratorFeatures;
-        AvroGenerator gen = new AvroGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out);
+        AvroGenerator gen = new AvroGenerator(ctxt, _generatorFeatures, feats,
+                _objectCodec, out);
         return gen;
     }
 }
