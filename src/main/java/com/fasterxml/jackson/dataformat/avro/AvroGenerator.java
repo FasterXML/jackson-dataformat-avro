@@ -84,6 +84,7 @@ public class AvroGenerator extends GeneratorBase
     /* Life-cycle
     /**********************************************************
      */
+
     public AvroGenerator(IOContext ctxt, int jsonFeatures, int avroFeatures,
             ObjectCodec codec, OutputStream output)
         throws IOException
@@ -92,7 +93,7 @@ public class AvroGenerator extends GeneratorBase
         _ioContext = ctxt;
         _avroFeatures = avroFeatures;
         _output = output;
-        _avroContext = AvroWriteContext.createRootContext(_rootSchema.getAvroSchema());
+        _avroContext = AvroWriteContext.createNullContext();
     }
 
     public void setSchema(AvroSchema schema)
@@ -102,7 +103,8 @@ public class AvroGenerator extends GeneratorBase
         }
         _rootSchema = schema;
         _encoder = _rootSchema.encoder(_output);
-//        _datumWriter = new GenericDatumWriter<GenericRecord>(schema.getAvroSchema());
+        // start with temporary root...
+        _avroContext = AvroWriteContext.createRootContext(schema.getAvroSchema());
     }
     /*
     protected void _init()

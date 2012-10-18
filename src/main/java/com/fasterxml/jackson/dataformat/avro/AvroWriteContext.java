@@ -41,6 +41,14 @@ public abstract class AvroWriteContext
         return new RootContext(schema);
     }
 
+    /**
+     * Factory method called to get a placeholder context that is only
+     * in place until actual schema is handed.
+     */
+    public static AvroWriteContext createNullContext() {
+        return NullContext.instance;
+    }
+    
     public abstract AvroWriteContext createChildArrayContext();
     public abstract AvroWriteContext createChildObjectContext();
     
@@ -50,7 +58,7 @@ public abstract class AvroWriteContext
     public final AvroWriteContext getParent() { return _parent; }
     
     @Override
-    public abstract String getCurrentName();
+    public String getCurrentName() { return null; }
 
     // // // Stuff from JsonWriteContext
 
@@ -59,11 +67,11 @@ public abstract class AvroWriteContext
      *
      * @return True for Object (record) context; false for others
      */
-    public abstract boolean writeFieldName(String name);
+    public boolean writeFieldName(String name) { return false; }
 
     public abstract void writeValue(Object value);
 
-    public abstract boolean canClose();
+    public boolean canClose() { return true; }
     
     // // // Internally used abstract methods
     
@@ -89,18 +97,48 @@ public abstract class AvroWriteContext
     /**********************************************************
      */
 
+    private final static class NullContext
+        extends AvroWriteContext
+    {
+        public final static NullContext instance = new NullContext();
+        
+        private NullContext() {
+            super(TYPE_ROOT, null, null);
+        }
+        
+        @Override
+        public final AvroWriteContext createChildArrayContext() {
+            _reportError();
+            return null;
+        }
+        
+        @Override
+        public final AvroWriteContext createChildObjectContext() {
+            _reportError();
+            return null;
+        }
+    
+        @Override
+        public void writeValue(Object value) {
+            _reportError();
+        }
+        
+        @Override
+        public void appendDesc(StringBuilder sb) {
+            sb.append("?");
+        }
+
+        protected void _reportError() {
+            throw new IllegalStateException("Can not write output without specifying Schema");
+        }
+    }
+    
     private final static class RootContext
         extends AvroWriteContext
     {
         protected RootContext(Schema schema) {
             super(TYPE_ROOT, null, schema);
         }
-
-        @Override
-        public final String getCurrentName() { return null; }
-
-        @Override
-        public boolean canClose() { return true; }
         
         @Override
         public final AvroWriteContext createChildArrayContext() {
@@ -112,9 +150,6 @@ public abstract class AvroWriteContext
         public final AvroWriteContext createChildObjectContext() {
             return new ObjectContext(this, new GenericData.Record(_schema));
         }
-
-        @Override
-        public final boolean writeFieldName(String name) { return false; }
 
         @Override
         public void writeValue(Object value) {
@@ -227,12 +262,6 @@ public abstract class AvroWriteContext
             super(TYPE_OBJECT, parent, array.getSchema());
             _array = array;
         }
-
-        @Override
-        public final String getCurrentName() { return null; }
-
-        @Override
-        public boolean canClose() { return true; }
         
         @Override
         public final AvroWriteContext createChildArrayContext() {
@@ -246,9 +275,6 @@ public abstract class AvroWriteContext
             GenericRecord ob = new GenericData.Record(_schema.getElementType());
             return new ObjectContext(this, ob);
         }
-
-        @Override
-        public final boolean writeFieldName(String name) { return false; }
         
         @Override
         public void writeValue(Object value) {
