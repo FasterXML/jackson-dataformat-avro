@@ -77,8 +77,10 @@ public abstract class AvroWriteContext
     
     public boolean canClose() { return true; }
     
-    // // // Internally used abstract methods
-    
+    protected GenericArray<Object> _array(Schema schema) {
+        return new GenericData.Array<Object>(8, schema);
+    }
+
     protected abstract void appendDesc(StringBuilder sb);
     
     // // // Overridden standard methods
@@ -161,7 +163,7 @@ public abstract class AvroWriteContext
                 throw new IllegalStateException("Can not write START_ARRAY; schema type is "
                         +_schema.getType());
             }
-            GenericArray<Object> arr = new GenericData.Array<Object>(8, _schema);
+            GenericArray<Object> arr = _array(_schema);
             _rootValue = arr;
             return new ArrayContext(this, _generator, arr);
         }
@@ -228,8 +230,8 @@ public abstract class AvroWriteContext
         public final AvroWriteContext createChildArrayContext()
         {
             _verifyValueWrite();
-            GenericArray<Object> arr = new GenericData.Array<Object>(8,
-                    _findField().schema());
+            GenericArray<Object> arr = _array(_findField().schema());
+            _record.put(_currentName, arr);
             return new ArrayContext(this, _generator, arr);
         }
         
@@ -238,6 +240,7 @@ public abstract class AvroWriteContext
         {
             _verifyValueWrite();
             GenericRecord ob = new GenericData.Record(_findField().schema());
+            _record.put(_currentName, ob);
             return new ObjectContext(this, _generator, ob);
         }
 
@@ -302,15 +305,17 @@ public abstract class AvroWriteContext
         }
         
         @Override
-        public final AvroWriteContext createChildArrayContext() {
-            GenericArray<Object> arr = new GenericData.Array<Object>(8,
-                    _schema.getElementType());
+        public final AvroWriteContext createChildArrayContext()
+        {
+            GenericArray<Object> arr = _array(_schema.getElementType()); 
+            _array.add(arr);
             return new ArrayContext(this, _generator, arr);
         }
         
         @Override
         public final AvroWriteContext createChildObjectContext() {
             GenericRecord ob = new GenericData.Record(_schema.getElementType());
+            _array.add(ob);
             return new ObjectContext(this, _generator, ob);
         }
         

@@ -5,9 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.BinaryEncoder;
-
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -267,7 +265,6 @@ public class AvroGenerator extends GeneratorBase
         if (!_complete) {
             _complete();
         }
-        
         if (_output != null) {
             if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
                 _output.close();
