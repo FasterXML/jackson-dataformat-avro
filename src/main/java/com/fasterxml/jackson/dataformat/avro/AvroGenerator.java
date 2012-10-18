@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.*;
@@ -71,13 +72,22 @@ public class AvroGenerator extends GeneratorBase
      */
 
     final protected OutputStream _output;
-
-//    protected GenericDatumWriter<GenericRecord> _datumWriter;
-
-    protected BinaryEncoder _encoder;
     
-    // Custom type for context:
+    /**
+     * Reference to the root context since that is needed for serialization
+     */
+    protected AvroWriteContext _rootContext;
+
+    /**
+     * Current context
+     */
     protected AvroWriteContext _avroContext;
+
+    /**
+     * Flag that is set when the whole content is complete, can
+     * be output.
+     */
+    protected boolean _complete;
     
     /*
     /**********************************************************
@@ -102,32 +112,9 @@ public class AvroGenerator extends GeneratorBase
             return;
         }
         _rootSchema = schema;
-        _encoder = _rootSchema.encoder(_output);
         // start with temporary root...
-        _avroContext = AvroWriteContext.createRootContext(schema.getAvroSchema());
+        _avroContext = _rootContext = AvroWriteContext.createRootContext(this, schema.getAvroSchema());
     }
-    /*
-    protected void _init()
-    {
-        if (_schema == null) {
-            throw new IllegalStateException("Can not generate: no Avro Schema set for generator");
-        }
-        _encoder = _schema.encoder(_output);
-    }
-    */
-    
-    /*
-                private BinaryEncoder encoder;
-
-                public byte[] serialize(GenericRecord data) throws IOException
-                {
-                  ByteArrayOutputStream out = outputStream(data);
-                  encoder = ENCODER_FACTORY.binaryEncoder(out, encoder);
-                  WRITER.write(data, encoder);
-                  encoder.flush();
-                  return out.toByteArray();
-                }
-     */
     
     /*                                                                                       
     /**********************************************************                              
@@ -264,7 +251,33 @@ public class AvroGenerator extends GeneratorBase
     public void close() throws IOException
     {
         super.close();
-        _output.close();
+        if (isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)) {
+            AvroWriteContext ctxt;
+            while ((ctxt = _avroContext) != null) {
+                if (ctxt.inArray()) {
+                    writeEndArray();
+                } else if (ctxt.inObject()) {
+                    writeEndObject();
+                } else {
+                    break;
+                }
+            }
+        }
+        // May need to finalize...
+        if (!_complete) {
+            _complete();
+        }
+        
+        if (_output != null) {
+            if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+                _output.close();
+            } else  if (isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)) {
+                // If we can't close it, we should at least flush
+                _output.flush();
+            }
+        }
+        // Internal buffer(s) generator has can now be released as well
+        _releaseBuffers();
     }
 
     /*
@@ -286,6 +299,9 @@ public class AvroGenerator extends GeneratorBase
             _reportError("Current context not an ARRAY but "+_avroContext.getTypeDesc());
         }
         _avroContext = _avroContext.getParent();
+        if (_avroContext.inRoot() && !_complete) {
+            _complete();
+        }
     }
 
     @Override
@@ -304,6 +320,9 @@ public class AvroGenerator extends GeneratorBase
             _reportError("Can not write END_OBJECT after writing FIELD_NAME but not value");
         }
         _avroContext = _avroContext.getParent();
+        if (_avroContext.inRoot() && !_complete) {
+            _complete();
+        }
     }
     
     /*
@@ -510,4 +529,12 @@ public class AvroGenerator extends GeneratorBase
     /* Helper methods
     /**********************************************************
      */
+
+    protected void _complete() throws IOException
+    {
+        _complete = true;
+        BinaryEncoder encoder = _rootSchema.encoder(_output);
+        _rootContext.complete(encoder);
+        encoder.flush();
+    }
 }

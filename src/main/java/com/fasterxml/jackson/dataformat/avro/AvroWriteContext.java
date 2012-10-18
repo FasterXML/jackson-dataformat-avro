@@ -1,9 +1,10 @@
 package com.fasterxml.jackson.dataformat.avro;
 
+import java.io.IOException;
+
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.*;
+import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.JsonStreamContext;
 
@@ -11,6 +12,8 @@ public abstract class AvroWriteContext
     extends JsonStreamContext
 {
     protected final AvroWriteContext _parent;
+    
+    protected final AvroGenerator _generator;
     
     /*
     /**********************************************************
@@ -27,18 +30,19 @@ public abstract class AvroWriteContext
      */
     
     protected AvroWriteContext(int type, AvroWriteContext parent,
-            Schema schema)
+            AvroGenerator generator, Schema schema)
     {
         super();
         _type = type;
         _parent = parent;
+        _generator = generator;
         _schema = schema;
     }
     
     // // // Factory methods
     
-    public static AvroWriteContext createRootContext(Schema schema) {
-        return new RootContext(schema);
+    public static AvroWriteContext createRootContext(AvroGenerator generator, Schema schema) {
+        return new RootContext(generator, schema);
     }
 
     /**
@@ -52,15 +56,11 @@ public abstract class AvroWriteContext
     public abstract AvroWriteContext createChildArrayContext();
     public abstract AvroWriteContext createChildObjectContext();
     
-    // // // Shared API
-    
     @Override
     public final AvroWriteContext getParent() { return _parent; }
     
     @Override
     public String getCurrentName() { return null; }
-
-    // // // Stuff from JsonWriteContext
 
     /**
      * Method that writer is to call before it writes a field name.
@@ -71,6 +71,10 @@ public abstract class AvroWriteContext
 
     public abstract void writeValue(Object value);
 
+    public void complete(BinaryEncoder encoder) throws IOException {
+        throw new IllegalStateException("Can not be called on "+getClass().getName());
+    }
+    
     public boolean canClose() { return true; }
     
     // // // Internally used abstract methods
@@ -103,7 +107,7 @@ public abstract class AvroWriteContext
         public final static NullContext instance = new NullContext();
         
         private NullContext() {
-            super(TYPE_ROOT, null, null);
+            super(TYPE_ROOT, null, null, null);
         }
         
         @Override
@@ -136,26 +140,60 @@ public abstract class AvroWriteContext
     private final static class RootContext
         extends AvroWriteContext
     {
-        protected RootContext(Schema schema) {
-            super(TYPE_ROOT, null, schema);
+        /**
+         * We need to keep reference to the root value here.
+         */
+        protected GenericContainer _rootValue;
+        
+        protected RootContext(AvroGenerator generator, Schema schema) {
+            super(TYPE_ROOT, null, generator, schema);
         }
         
         @Override
-        public final AvroWriteContext createChildArrayContext() {
+        public final AvroWriteContext createChildArrayContext()
+        {
+            // verify that root type is array (or compatible)
+            switch (_schema.getType()) {
+            case ARRAY:
+            case UNION: // maybe
+                break;
+            default:
+                throw new IllegalStateException("Can not write START_ARRAY; schema type is "
+                        +_schema.getType());
+            }
             GenericArray<Object> arr = new GenericData.Array<Object>(8, _schema);
-            return new ArrayContext(this, arr);
+            _rootValue = arr;
+            return new ArrayContext(this, _generator, arr);
         }
         
         @Override
-        public final AvroWriteContext createChildObjectContext() {
-            return new ObjectContext(this, new GenericData.Record(_schema));
+        public final AvroWriteContext createChildObjectContext()
+        {
+            // verify that root type is record (or compatible)
+            switch (_schema.getType()) {
+            case RECORD:
+            case UNION: // maybe
+                break;
+            default:
+                throw new IllegalStateException("Can not write START_OBJECT; schema type is "
+                        +_schema.getType());
+            }
+            GenericRecord rec = new GenericData.Record(_schema);
+            _rootValue = rec;
+            return new ObjectContext(this, _generator, rec);
         }
 
         @Override
         public void writeValue(Object value) {
             throw new IllegalStateException("Can not write values directly in root context, outside of Records/Arrays");
         }
-        
+
+        @Override
+        public void complete(BinaryEncoder encoder) throws IOException
+        {
+            new GenericDatumWriter<GenericContainer>(_schema).write(_rootValue, encoder);
+        }
+
         @Override
         public void appendDesc(StringBuilder sb) {
             sb.append("/");
@@ -171,10 +209,10 @@ public abstract class AvroWriteContext
         
         protected boolean _expectValue = false;
         
-        protected ObjectContext(AvroWriteContext parent,
+        protected ObjectContext(AvroWriteContext parent, AvroGenerator generator,
                 GenericRecord record)
         {
-            super(TYPE_OBJECT, parent, record.getSchema());
+            super(TYPE_OBJECT, parent, generator, record.getSchema());
             _record = record;
         }
 
@@ -192,7 +230,7 @@ public abstract class AvroWriteContext
             _verifyValueWrite();
             GenericArray<Object> arr = new GenericData.Array<Object>(8,
                     _findField().schema());
-            return new ArrayContext(this, arr);
+            return new ArrayContext(this, _generator, arr);
         }
         
         @Override
@@ -200,7 +238,7 @@ public abstract class AvroWriteContext
         {
             _verifyValueWrite();
             GenericRecord ob = new GenericData.Record(_findField().schema());
-            return new ObjectContext(this, ob);
+            return new ObjectContext(this, _generator, ob);
         }
 
         @Override
@@ -256,10 +294,10 @@ public abstract class AvroWriteContext
     {
         protected final GenericArray<Object> _array;
         
-        protected ArrayContext(AvroWriteContext parent,
+        protected ArrayContext(AvroWriteContext parent, AvroGenerator generator,
                 GenericArray<Object> array)
         {
-            super(TYPE_OBJECT, parent, array.getSchema());
+            super(TYPE_ARRAY, parent, generator, array.getSchema());
             _array = array;
         }
         
@@ -267,13 +305,13 @@ public abstract class AvroWriteContext
         public final AvroWriteContext createChildArrayContext() {
             GenericArray<Object> arr = new GenericData.Array<Object>(8,
                     _schema.getElementType());
-            return new ArrayContext(this, arr);
+            return new ArrayContext(this, _generator, arr);
         }
         
         @Override
         public final AvroWriteContext createChildObjectContext() {
             GenericRecord ob = new GenericData.Record(_schema.getElementType());
-            return new ObjectContext(this, ob);
+            return new ObjectContext(this, _generator, ob);
         }
         
         @Override
