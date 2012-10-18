@@ -2,20 +2,15 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericArray;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
 
-public class AvroWriteContext extends JsonStreamContext
+public abstract class AvroWriteContext
+    extends JsonStreamContext
 {
     protected final AvroWriteContext _parent;
-    
-    /**
-     * Name of the field of which value is to be parsed; only
-     * used for OBJECT contexts
-     */
-    protected String _currentName;
     
     /*
     /**********************************************************
@@ -23,12 +18,7 @@ public class AvroWriteContext extends JsonStreamContext
     /**********************************************************
      */
     
-    protected AvroWriteContext _child = null;
-
-    /**
-     * Avro schema for current object (i.e. {@link #_avroData}.
-     */
-    protected Schema _avroSchema;
+    protected final Schema _schema;
     
     /*
     /**********************************************************
@@ -36,30 +26,23 @@ public class AvroWriteContext extends JsonStreamContext
     /**********************************************************
      */
     
-    protected AvroWriteContext(int type, AvroWriteContext parent)
+    protected AvroWriteContext(int type, AvroWriteContext parent,
+            Schema schema)
     {
         super();
         _type = type;
         _parent = parent;
-        _index = -1;
+        _schema = schema;
     }
     
     // // // Factory methods
     
-    public static AvroWriteContext createRootContext()
-    {
-        return new RootContext(TYPE_ROOT);
+    public static AvroWriteContext createRootContext(Schema schema) {
+        return new RootContext(schema);
     }
-    
-    public final AvroWriteContext createChildArrayContext(GenericArray<Object> avroArray)
-    {
-        return (_child = new ArrayContext(this, avroArray));
-    }
-    
-    public final AvroWriteContext createChildObjectContext(GenericRecord avroObject)
-    {
-        return (_child = new ObjectContext(this, avroObject));
-    }
+
+    public abstract AvroWriteContext createChildArrayContext();
+    public abstract AvroWriteContext createChildObjectContext();
     
     // // // Shared API
     
@@ -67,75 +50,24 @@ public class AvroWriteContext extends JsonStreamContext
     public final AvroWriteContext getParent() { return _parent; }
     
     @Override
-    public final String getCurrentName() { return _currentName; }
+    public abstract String getCurrentName();
 
     // // // Stuff from JsonWriteContext
 
     /**
      * Method that writer is to call before it writes a field name.
      *
-     * @return Index of the field entry (0-based)
+     * @return True for Object (record) context; false for others
      */
-    public final int writeFieldName(String name)
-    {
-        if (_type == TYPE_OBJECT) {
-            if (_currentName != null) { // just wrote a name...
-                return JsonWriteContext.STATUS_EXPECT_VALUE;
-            }
-            _currentName = name;
-            return (_index < 0) ? JsonWriteContext.STATUS_OK_AS_IS : JsonWriteContext.STATUS_OK_AFTER_COMMA;
-        }
-        return JsonWriteContext.STATUS_EXPECT_VALUE;
-    }
-    
-    public final int writeValue()
-    {
-        // Most likely, object:
-        if (_type == TYPE_OBJECT) {
-            if (_currentName == null) {
-                return JsonWriteContext.STATUS_EXPECT_NAME;
-            }
-            _currentName = null;
-            ++_index;
-            return JsonWriteContext.STATUS_OK_AFTER_COLON;
-        }
+    public abstract boolean writeFieldName(String name);
 
-        // Ok, array?
-        if (_type == TYPE_ARRAY) {
-            int ix = _index;
-            ++_index;
-            return (ix < 0) ? JsonWriteContext.STATUS_OK_AS_IS : JsonWriteContext.STATUS_OK_AFTER_COMMA;
-        }
-        
-        // Nope, root context
-        // No commas within root context, but need space
-        ++_index;
-        return (_index == 0) ? JsonWriteContext.STATUS_OK_AS_IS : JsonWriteContext.STATUS_OK_AFTER_SPACE;
-    }
+    public abstract void writeValue(Object value);
+
+    public abstract boolean canClose();
     
     // // // Internally used abstract methods
     
-    protected final void appendDesc(StringBuilder sb)
-    {
-        if (_type == TYPE_OBJECT) {
-            sb.append('{');
-            if (_currentName != null) {
-                sb.append('"');
-                sb.append(_currentName);
-                sb.append('"');
-            } else {
-                sb.append('?');
-            }
-            sb.append('}');
-        } else if (_type == TYPE_ARRAY) {
-            sb.append('[');
-            sb.append(getCurrentIndex());
-            sb.append(']');
-        } else {
-            // nah, ROOT:
-            sb.append("/");
-        }
-    }
+    protected abstract void appendDesc(StringBuilder sb);
     
     // // // Overridden standard methods
     
@@ -153,28 +85,6 @@ public class AvroWriteContext extends JsonStreamContext
 
     /*
     /**********************************************************
-    /* Helper methods
-    /**********************************************************
-     */
-
-    protected Schema _findSchemaForCurrentField()
-    {
-        if (_currentName == null) {
-            throw new IllegalStateException("Internal error: missing current field name");
-        }
-        if (_avroSchema == null) {
-            throw new IllegalStateException("Internal error: missing current schema");
-        }
-        Schema.Field f = _avroSchema.getField(_currentName);
-        if (f == null) {
-            throw new IllegalStateException("Internal error: could not find schema for field '"
-                    +_currentName+"'");
-        }
-        return f.schema();
-    }
-
-    /*
-    /**********************************************************
     /* Implementations
     /**********************************************************
      */
@@ -182,34 +92,175 @@ public class AvroWriteContext extends JsonStreamContext
     private final static class RootContext
         extends AvroWriteContext
     {
-        protected RootContext(int type) {
-            super(TYPE_ROOT, null);
+        protected RootContext(Schema schema) {
+            super(TYPE_ROOT, null, schema);
+        }
+
+        @Override
+        public final String getCurrentName() { return null; }
+
+        @Override
+        public boolean canClose() { return true; }
+        
+        @Override
+        public final AvroWriteContext createChildArrayContext() {
+            GenericArray<Object> arr = new GenericData.Array<Object>(8, _schema);
+            return new ArrayContext(this, arr);
+        }
+        
+        @Override
+        public final AvroWriteContext createChildObjectContext() {
+            return new ObjectContext(this, new GenericData.Record(_schema));
+        }
+
+        @Override
+        public final boolean writeFieldName(String name) { return false; }
+
+        @Override
+        public void writeValue(Object value) {
+            throw new IllegalStateException("Can not write values directly in root context, outside of Records/Arrays");
+        }
+        
+        @Override
+        public void appendDesc(StringBuilder sb) {
+            sb.append("/");
         }
     }
 
     private final static class ObjectContext
         extends AvroWriteContext
     {
-        protected final GenericRecord _container;
+        protected final GenericRecord _record;
 
+        protected String _currentName;
+        
+        protected boolean _expectValue = false;
+        
         protected ObjectContext(AvroWriteContext parent,
-                GenericRecord avroData)
+                GenericRecord record)
         {
-            super(TYPE_OBJECT, parent);
-            _container = avroData;
+            super(TYPE_OBJECT, parent, record.getSchema());
+            _record = record;
+        }
+
+        @Override
+        public final String getCurrentName() { return _currentName; }
+
+        @Override
+        public boolean canClose() {
+            return !_expectValue;
+        }
+        
+        @Override
+        public final AvroWriteContext createChildArrayContext()
+        {
+            _verifyValueWrite();
+            GenericArray<Object> arr = new GenericData.Array<Object>(8,
+                    _findField().schema());
+            return new ArrayContext(this, arr);
+        }
+        
+        @Override
+        public final AvroWriteContext createChildObjectContext()
+        {
+            _verifyValueWrite();
+            GenericRecord ob = new GenericData.Record(_findField().schema());
+            return new ObjectContext(this, ob);
+        }
+
+        @Override
+        public final boolean writeFieldName(String name)
+        {
+            _currentName = name;
+            _expectValue = true;
+            return true;
+        }
+        
+        @Override
+        public void writeValue(Object value) {
+            _verifyValueWrite();
+            _record.put(_currentName, value);
+        }
+        
+        @Override
+        public void appendDesc(StringBuilder sb)
+        {
+            sb.append('{');
+            if (_currentName != null) {
+                sb.append('"');
+                sb.append(_currentName);
+                sb.append('"');
+            } else {
+                sb.append('?');
+            }
+            sb.append('}');
+        }
+
+        protected void _verifyValueWrite()
+        {
+            if (!_expectValue) {
+                throw new IllegalStateException("Expecting FIELD_NAME, not value");
+            }
+            _expectValue = false;
+        }
+        
+        protected Schema.Field _findField() {
+            if (_currentName == null) {
+                throw new IllegalStateException("No current field name");
+            }
+            Schema.Field f = _schema.getField(_currentName);
+            if (f == null) {
+                throw new IllegalStateException("No field named '"+_currentName+"'");
+            }
+            return f;
         }
     }
 
     private final static class ArrayContext
         extends AvroWriteContext
     {
-        protected final GenericArray<Object> _container;
-
+        protected final GenericArray<Object> _array;
+        
         protected ArrayContext(AvroWriteContext parent,
-                GenericArray<Object> avroData)
+                GenericArray<Object> array)
         {
-            super(TYPE_OBJECT, parent);
-            _container = avroData;
+            super(TYPE_OBJECT, parent, array.getSchema());
+            _array = array;
+        }
+
+        @Override
+        public final String getCurrentName() { return null; }
+
+        @Override
+        public boolean canClose() { return true; }
+        
+        @Override
+        public final AvroWriteContext createChildArrayContext() {
+            GenericArray<Object> arr = new GenericData.Array<Object>(8,
+                    _schema.getElementType());
+            return new ArrayContext(this, arr);
+        }
+        
+        @Override
+        public final AvroWriteContext createChildObjectContext() {
+            GenericRecord ob = new GenericData.Record(_schema.getElementType());
+            return new ObjectContext(this, ob);
+        }
+
+        @Override
+        public final boolean writeFieldName(String name) { return false; }
+        
+        @Override
+        public void writeValue(Object value) {
+            _array.add(value);
+        }
+        
+        @Override
+        public void appendDesc(StringBuilder sb)
+        {
+            sb.append('[');
+            sb.append(getCurrentIndex());
+            sb.append(']');
         }
     }
 }

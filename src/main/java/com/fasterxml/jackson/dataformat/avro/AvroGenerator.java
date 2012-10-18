@@ -5,17 +5,11 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericContainer;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.json.JsonWriteContext;
 
 public class AvroGenerator extends GeneratorBase
 {
@@ -82,15 +76,6 @@ public class AvroGenerator extends GeneratorBase
 
     protected BinaryEncoder _encoder;
     
-    protected String _currentField;
-
-    protected GenericContainer _currContainer;
-
-    /**
-     * Active Avro Schema for the current container (record or array)
-     */
-    protected Schema _currSchema;
-    
     // Custom type for context:
     protected AvroWriteContext _avroContext;
     
@@ -107,7 +92,7 @@ public class AvroGenerator extends GeneratorBase
         _ioContext = ctxt;
         _avroFeatures = avroFeatures;
         _output = output;
-        _avroContext = AvroWriteContext.createRootContext();
+        _avroContext = AvroWriteContext.createRootContext(_rootSchema.getAvroSchema());
     }
 
     public void setSchema(AvroSchema schema)
@@ -214,38 +199,22 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public final void writeFieldName(String name) throws IOException, JsonGenerationException
     {
-        if (_avroContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(name);
+        _avroContext.writeFieldName(name);
     }
 
     @Override
     public final void writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
-        // Object is a value, need to verify it's allowed
-        if (_avroContext.writeFieldName(name.getValue()) == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(name.getValue());
+        _avroContext.writeFieldName(name.getValue());
     }
 
     @Override
     public final void writeStringField(String fieldName, String value)
         throws IOException, JsonGenerationException
     {
-        if (_avroContext.writeFieldName(fieldName) == JsonWriteContext.STATUS_EXPECT_VALUE) {
-            _reportError("Can not write a field name, expecting a value");
-        }
-        _writeFieldName(fieldName);
+        _avroContext.writeFieldName(fieldName);
         writeString(value);
-    }
-
-    private final void _writeFieldName(String name)
-        throws IOException, JsonGenerationException
-    {
-        _currentField = name;
     }
     
     /*
@@ -302,29 +271,10 @@ public class AvroGenerator extends GeneratorBase
     /**********************************************************
      */
     
-    @SuppressWarnings("unchecked")
     @Override
     public final void writeStartArray() throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("start an array");
-        Schema schema;
-        GenericArray<Object> newArray;
-        if (_avroContext.inObject()) {
-            schema = _findSchemaForCurrentField();
-            newArray = new GenericData.Array<Object>(10, schema);
-            ((GenericRecord) _currContainer).put(_currentField, newArray);
-        } else if (_avroContext.inArray()) {
-            schema = _currSchema.getElementType();
-            newArray = new GenericData.Array<Object>(10, schema);
-            ((GenericArray<Object>) _currContainer).add(newArray);
-        } else {
-            schema = _rootSchema.getAvroSchema();
-            newArray = new GenericData.Array<Object>(10, schema);
-        }
-        _currContainer = newArray;
-        _avroContext = _avroContext.createChildArrayContext(newArray);
-        // note: can NOT be implicit, to avoid having to specify tag
-//        _emitter.emit(new SequenceStartEvent(/*anchor*/null, /*tag*/null, /*implicit*/ true,  null, null, style));
+        _avroContext = _avroContext.createChildArrayContext();
     }
     
     @Override
@@ -334,24 +284,12 @@ public class AvroGenerator extends GeneratorBase
             _reportError("Current context not an ARRAY but "+_avroContext.getTypeDesc());
         }
         _avroContext = _avroContext.getParent();
-//        _emitter.emit(new SequenceEndEvent(null, null));
     }
 
     @Override
     public final void writeStartObject() throws IOException, JsonGenerationException
     {
-        // Starting the root Object?
-        if (_avroContext.inRoot()) {
-            _currRecord = new GenericData.Record(_rootSchema.getAvroSchema());
-        } else {
-            _verifyValueWrite("start an object");
-            
-            // Must find schema for Object field...
-            Schema.Field f = _sche
-            
-            _avroContext = _avroContext.createChildObjectContext();
-//        _emitter.emit(new MappingStartEvent(/* anchor */null, null, //TAG_OBJECT,
-        }
+        _avroContext = _avroContext.createChildObjectContext();
     }
 
     @Override
@@ -360,8 +298,10 @@ public class AvroGenerator extends GeneratorBase
         if (!_avroContext.inObject()) {
             _reportError("Current context not an object but "+_avroContext.getTypeDesc());
         }
+        if (!_avroContext.canClose()) {
+            _reportError("Can not write END_OBJECT after writing FIELD_NAME but not value");
+        }
         _avroContext = _avroContext.getParent();
-//        _emitter.emit(new MappingEndEvent(null, null));
     }
     
     /*
@@ -377,8 +317,7 @@ public class AvroGenerator extends GeneratorBase
             writeNull();
             return;
         }
-        _verifyValueWrite("write String value");
-        _currRecord.put(_currentField, text);
+        _avroContext.writeValue(text);
     }
 
     @Override
@@ -469,9 +408,9 @@ public class AvroGenerator extends GeneratorBase
         }
         final int end = offset+len;
         if (offset != 0 || end != data.length) {
-            _currRecord.put(_currentField, Arrays.copyOfRange(data, offset, end));
+            _avroContext.writeValue(Arrays.copyOfRange(data, offset, end));
         } else {
-            _currRecord.put(_currentField, data);
+            _avroContext.writeValue(data);
         }
 
         //        String encoded = b64variant.encode(data);
@@ -487,30 +426,25 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public void writeBoolean(boolean state) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write boolean value");
-        _currRecord.put(_currentField, state ? Boolean.TRUE : Boolean.FALSE);
+        _avroContext.writeValue(state ? Boolean.TRUE : Boolean.FALSE);
     }
 
     @Override
     public void writeNull() throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write null value");
-        // no real type for this, is there?
-        _currRecord.put(_currentField, null);
+        _avroContext.writeValue(null);
     }
 
     @Override
     public void writeNumber(int i) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, Integer.valueOf(i));
+        _avroContext.writeValue(Integer.valueOf(i));
     }
 
     @Override
     public void writeNumber(long l) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, Long.valueOf(l));
+        _avroContext.writeValue(Long.valueOf(l));
     }
 
     @Override
@@ -520,22 +454,19 @@ public class AvroGenerator extends GeneratorBase
             writeNull();
             return;
         }
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, v);
+        _avroContext.writeValue(v);
     }
     
     @Override
     public void writeNumber(double d) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, Double.valueOf(d));
+        _avroContext.writeValue(Double.valueOf(d));
     }    
 
     @Override
     public void writeNumber(float f) throws IOException, JsonGenerationException
     {
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, Float.valueOf(f));
+        _avroContext.writeValue(Float.valueOf(f));
     }
 
     @Override
@@ -545,8 +476,7 @@ public class AvroGenerator extends GeneratorBase
             writeNull();
             return;
         }
-        _verifyValueWrite("write number");
-        _currRecord.put(_currentField, dec);
+        _avroContext.writeValue(dec);
     }
 
     @Override
@@ -565,10 +495,7 @@ public class AvroGenerator extends GeneratorBase
     protected final void _verifyValueWrite(String typeMsg)
         throws IOException, JsonGenerationException
     {
-        int status = _avroContext.writeValue();
-        if (status == JsonWriteContext.STATUS_EXPECT_NAME) {
-            _reportError("Can not "+typeMsg+", expecting field name");
-        }
+        _throwInternal();
     }
 
     @Override
