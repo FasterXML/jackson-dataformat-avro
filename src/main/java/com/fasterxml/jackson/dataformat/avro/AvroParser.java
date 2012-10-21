@@ -2,16 +2,19 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.*;
 
-import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.DecoderFactory;
-
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.json.JsonReadContext;
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
+import com.fasterxml.jackson.dataformat.avro.deser.EmptyContext;
 
-public class AvroParser extends ParserBase
+/**
+ * {@link JsonParser} implementation for decoding Avro content and
+ * exposing at as a stream of {@link JsonToken}s, to be used
+ * for data binding.
+ */
+public abstract class AvroParser extends ParserBase
 {
     /**
      * Enumeration that defines all togglable features for Avro parsers.
@@ -70,8 +73,6 @@ public class AvroParser extends ParserBase
      */
 
     final protected InputStream _input;
-
-    protected BinaryDecoder _decoder;
     
     /*
     /**********************************************************************
@@ -97,18 +98,17 @@ public class AvroParser extends ParserBase
     /**********************************************************************
      */
     
-    public AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
+    protected AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
             ObjectCodec codec, InputStream in)
     {
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = in;
-        _avroContext = AvroReadContext.createNullContext();
-        _decoder = DecoderFactory.get().binaryDecoder(in, null);
+        _avroContext = EmptyContext.instance;
     }
 
-    public AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
+    protected AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
             ObjectCodec codec,
             byte[] data, int offset, int len)
     {
@@ -116,7 +116,6 @@ public class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = null;
-        _decoder = DecoderFactory.get().binaryDecoder(data, offset, len, null);
     }
 
     
@@ -232,7 +231,7 @@ public class AvroParser extends ParserBase
     @Override public AvroSchema getSchema() {
         return _rootSchema;
     }
-    
+
     @Override
     public void setSchema(FormatSchema schema)
     {
@@ -240,13 +239,13 @@ public class AvroParser extends ParserBase
             return;
         }
         if (schema instanceof AvroSchema) {
-            AvroSchema as = (AvroSchema) schema;
-            _avroContext = AvroReadContext.createRootContext(_decoder,
-                    as.getAvroSchema());
+            _initSchema((AvroSchema) schema);
         } else {
             super.setSchema(schema);
         }
     }
+
+    protected abstract void _initSchema(AvroSchema schema);
     
     /*
     /**********************************************************
@@ -281,9 +280,26 @@ public class AvroParser extends ParserBase
         if (_closed) {
             return null;
         }
-        
-        // !!! TODO
-        return null;
+        JsonToken t = _avroContext.nextToken();
+        if (t != null) { // usual quick case
+            _currToken = t;
+            return t;
+        }
+        // Otherwise, maybe context was closed
+        while (true) {
+            AvroReadContext ctxt = _avroContext.getParent();
+            if (ctxt == null)  { // root context, end!
+                _currToken = null;
+                close();
+                return null;
+            }
+            _avroContext = ctxt;
+            t = ctxt.nextToken();
+            if (t != null) {
+                _currToken = t;
+                return t;
+            }
+        }
     }
 
     /*
