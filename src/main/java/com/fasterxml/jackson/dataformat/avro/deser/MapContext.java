@@ -9,8 +9,10 @@ import org.apache.avro.io.BinaryDecoder;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
-// Context used for Avro Records
-final class RecordContext extends ReadContextBase
+/**
+ * Context implementation for reading Avro Map containers.
+ */
+public class MapContext extends ReadContextBase
 {
     protected final Schema _schema;
 
@@ -24,7 +26,7 @@ final class RecordContext extends ReadContextBase
 
     protected int _fieldIndex = -1;
     
-    public RecordContext(AvroReadContext parent,
+    public MapContext(AvroReadContext parent,
             AvroParserImpl parser, Schema schema)
         throws IOException
     {
@@ -43,7 +45,7 @@ final class RecordContext extends ReadContextBase
     protected boolean isStructured() { return true; }
     
     @Override
-    public JsonToken nextToken(BinaryDecoder dec) throws IOException
+    public JsonToken nextToken(BinaryDecoder decoder) throws IOException
     {
         if (_fieldIndex < 0) {
             _fieldIndex = 0;
@@ -68,9 +70,9 @@ final class RecordContext extends ReadContextBase
         ReadContextBase child = createContext(curr.schema());
         if (child.isStructured()) {
             _parser.setAvroContext(child);
-            return child.nextToken(dec);
+            return child.nextToken(decoder);
         }
-        return child.nextToken(dec);
+        return child.nextToken(decoder);
     }
     
     @Override

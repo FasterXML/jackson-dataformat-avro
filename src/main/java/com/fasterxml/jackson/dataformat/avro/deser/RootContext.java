@@ -21,16 +21,15 @@ public final class RootContext extends ReadContextBase
 {
     protected final AvroReadContext _child;
     
-    public RootContext(AvroParserImpl parser,
-            BinaryDecoder decoder, Schema schema) throws IOException
+    public RootContext(AvroParserImpl parser, Schema schema) throws IOException
     {
-        super(TYPE_ROOT, null, parser, decoder);
+        super(TYPE_ROOT, null, parser);
         _child = createContext(schema);
         parser.setAvroContext(_child);
     }
     
     @Override
-    public JsonToken nextToken() throws IOException
+    public JsonToken nextToken(BinaryDecoder dec) throws IOException
     {
         // we have set child context to be the current for parser,
         // and we are only called when it ends; so should be ok
@@ -41,5 +40,11 @@ public final class RootContext extends ReadContextBase
     @Override
     public void appendDesc(StringBuilder sb) {
         sb.append("/");
+    }
+
+    @Override
+    protected boolean isStructured() {
+        // does not really matter; should we redirect to child?
+        return true;
     }
 }

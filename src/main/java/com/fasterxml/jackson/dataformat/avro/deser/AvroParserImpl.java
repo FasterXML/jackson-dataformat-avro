@@ -6,6 +6,8 @@ import java.io.InputStream;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.avro.AvroParser;
@@ -43,10 +45,39 @@ public class AvroParserImpl extends AvroParser
      */
 
     @Override
+    public JsonToken nextToken() throws IOException, JsonParseException
+    {
+        _binaryValue = null;
+        if (_closed) {
+            return null;
+        }
+        JsonToken t = _avroContext.nextToken(_decoder);
+        if (t != null) { // usual quick case
+            _currToken = t;
+            return t;
+        }
+        // Otherwise, maybe context was closed
+        while (true) {
+            AvroReadContext ctxt = _avroContext.getParent();
+            if (ctxt == null)  { // root context, end!
+                _currToken = null;
+                close();
+                return null;
+            }
+            _avroContext = ctxt;
+            t = ctxt.nextToken(_decoder);
+            if (t != null) {
+                _currToken = t;
+                return t;
+            }
+        }
+    }
+    
+    @Override
     protected void _initSchema(AvroSchema schema)
     {
         try {
-            _avroContext = new RootContext(this, _decoder, schema.getAvroSchema());
+            _avroContext = new RootContext(this, schema.getAvroSchema());
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

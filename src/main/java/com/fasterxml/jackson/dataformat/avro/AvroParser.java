@@ -246,7 +246,7 @@ public abstract class AvroParser extends ParserBase
     }
 
     protected abstract void _initSchema(AvroSchema schema);
-    
+
     /*
     /**********************************************************
     /* Location info
@@ -274,33 +274,7 @@ public abstract class AvroParser extends ParserBase
      */
     
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException
-    {
-        _binaryValue = null;
-        if (_closed) {
-            return null;
-        }
-        JsonToken t = _avroContext.nextToken();
-        if (t != null) { // usual quick case
-            _currToken = t;
-            return t;
-        }
-        // Otherwise, maybe context was closed
-        while (true) {
-            AvroReadContext ctxt = _avroContext.getParent();
-            if (ctxt == null)  { // root context, end!
-                _currToken = null;
-                close();
-                return null;
-            }
-            _avroContext = ctxt;
-            t = ctxt.nextToken();
-            if (t != null) {
-                _currToken = t;
-                return t;
-            }
-        }
-    }
+    public abstract JsonToken nextToken() throws IOException, JsonParseException;
 
     /*
     /**********************************************************
