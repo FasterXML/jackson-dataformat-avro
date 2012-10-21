@@ -46,7 +46,7 @@ public class AvroParserImpl extends AvroParser
     protected void _initSchema(AvroSchema schema)
     {
         try {
-            _avroContext = new Root(this, _decoder, schema.getAvroSchema());
+            _avroContext = new RootContext(this, _decoder, schema.getAvroSchema());
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

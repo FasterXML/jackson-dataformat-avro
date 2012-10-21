@@ -9,13 +9,13 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 // Context used for Avro Records
-final class Record extends ReadContextBase
+final class RecordContext extends ReadContextBase
 {
     protected final Schema _schema;
 
     protected String _currentName;
     
-    public Record(AvroReadContext parent,
+    public RecordContext(AvroReadContext parent,
             AvroParserImpl parser, BinaryDecoder decoder, Schema schema)
         throws IOException
     {

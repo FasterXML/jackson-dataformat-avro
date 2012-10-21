@@ -9,7 +9,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 // Context used for Avro Arrays
-final class Array extends ReadContextBase
+final class ArrayContext extends ReadContextBase
 {
     /**
      * Number of elements in current chunk of array elements,
@@ -27,7 +27,7 @@ final class Array extends ReadContextBase
      * (exposed as Arrays and Objects) or not (simple values)
      */
     protected final boolean _structuredValue;
-    public Array(AvroReadContext parent,
+    public ArrayContext(AvroReadContext parent,
             AvroParserImpl parser, BinaryDecoder decoder, Schema schema)
         throws IOException
     {

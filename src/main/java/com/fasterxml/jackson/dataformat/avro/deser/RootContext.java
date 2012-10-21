@@ -17,11 +17,11 @@ import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
  * Context used at root level; basically just a container
  * over a single Avro array or record
  */
-public final class Root extends ReadContextBase
+public final class RootContext extends ReadContextBase
 {
     protected final AvroReadContext _child;
     
-    public Root(AvroParserImpl parser,
+    public RootContext(AvroParserImpl parser,
             BinaryDecoder decoder, Schema schema) throws IOException
     {
         super(TYPE_ROOT, null, parser, decoder);
