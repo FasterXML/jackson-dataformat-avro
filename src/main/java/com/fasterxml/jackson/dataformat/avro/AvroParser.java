@@ -2,10 +2,8 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.*;
 
-import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
+import org.apache.avro.io.DecoderFactory;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.ParserBase;
@@ -63,7 +61,7 @@ public class AvroParser extends ParserBase
 
     protected int _avroFeatures;
 
-    protected AvroSchema _schema;
+    protected AvroSchema _rootSchema;
     
     /*
     /**********************************************************************
@@ -75,19 +73,13 @@ public class AvroParser extends ParserBase
 
     protected BinaryDecoder _decoder;
     
-    protected GenericDatumReader<GenericRecord> _datumReader;
-    
-    protected GenericRecord _currentRecord;
-
-    protected GenericArray<?> _currentArray;
-    
     /*
     /**********************************************************************
     /* State
     /**********************************************************************
      */
 
-    protected AvroReadContext _avroCtxt;
+    protected AvroReadContext _avroContext;
     
     /**
      * We need to keep track of text values.
@@ -112,7 +104,8 @@ public class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = in;
-        _avroCtxt = AvroReadContext.createRootContext();
+        _avroContext = AvroReadContext.createNullContext();
+        _decoder = DecoderFactory.get().binaryDecoder(in, null);
     }
 
     public AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
@@ -122,8 +115,8 @@ public class AvroParser extends ParserBase
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
-        // TODO: try to benefit from direct array access?
-        _input = new ByteArrayInputStream(data, offset, len);
+        _input = null;
+        _decoder = DecoderFactory.get().binaryDecoder(data, offset, len, null);
     }
 
     
@@ -172,7 +165,9 @@ public class AvroParser extends ParserBase
 
     @Override
     protected void _closeInput() throws IOException {
-//        _reader.close();
+        if (_input != null) {
+            _input.close();
+        }
     }
     
     /*
@@ -235,17 +230,22 @@ public class AvroParser extends ParserBase
     }
 
     @Override public AvroSchema getSchema() {
-        return _schema;
+        return _rootSchema;
     }
     
     @Override
     public void setSchema(FormatSchema schema)
     {
-        if (schema instanceof AvroSchema) {
-            _setSchema((AvroSchema) schema);
+        if (_rootSchema == schema) {
             return;
         }
-        super.setSchema(schema);
+        if (schema instanceof AvroSchema) {
+            AvroSchema as = (AvroSchema) schema;
+            _avroContext = AvroReadContext.createRootContext(_decoder,
+                    as.getAvroSchema());
+        } else {
+            super.setSchema(schema);
+        }
     }
     
     /*
@@ -322,7 +322,7 @@ public class AvroParser extends ParserBase
         if (_currToken == JsonToken.FIELD_NAME) {
             return _currentFieldName;
         }
-        return _avroCtxt.getCurrentName();
+        return _avroContext.getCurrentName();
     }
 
     @Override
@@ -383,20 +383,4 @@ public class AvroParser extends ParserBase
     /* Helper methods
     /**********************************************************************
      */
-
-    protected void _setSchema(AvroSchema schema)
-    {
-        if (_schema != schema) {
-            _schema = schema;
-            _datumReader = new GenericDatumReader<GenericRecord>(schema.getAvroSchema());
-        }
-    }
-
-    protected void _init()
-    {
-        if (_schema == null) {
-            throw new IllegalStateException("Can not parse: no Avro Schema set for parser");
-        }
-        _decoder = _schema.decoder(_input);
-    }    
 }

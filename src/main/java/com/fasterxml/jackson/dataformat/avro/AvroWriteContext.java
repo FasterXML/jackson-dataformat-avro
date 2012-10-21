@@ -15,12 +15,6 @@ public abstract class AvroWriteContext
     
     protected final AvroGenerator _generator;
     
-    /*
-    /**********************************************************
-    /* Simple instance reuse slots
-    /**********************************************************
-     */
-    
     protected final Schema _schema;
     
     /*
@@ -111,7 +105,7 @@ public abstract class AvroWriteContext
         private NullContext() {
             super(TYPE_ROOT, null, null, null);
         }
-        
+
         @Override
         public final AvroWriteContext createChildArrayContext() {
             _reportError();
@@ -135,7 +129,7 @@ public abstract class AvroWriteContext
         }
 
         protected void _reportError() {
-            throw new IllegalStateException("Can not write output without specifying Schema");
+            throw new IllegalStateException("Can not write Avro output without specifying Schema");
         }
     }
     
