@@ -233,7 +233,8 @@ public abstract class AvroWriteContext
         public final AvroWriteContext createChildObjectContext()
         {
             _verifyValueWrite();
-            GenericRecord ob = new GenericData.Record(_findField().schema());
+            Schema.Field f = _findField();
+            GenericRecord ob = new GenericData.Record(f.schema());
             _record.put(_currentName, ob);
             return new ObjectContext(this, _generator, ob);
         }

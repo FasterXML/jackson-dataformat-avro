@@ -15,7 +15,7 @@ public class SimpleGenerationTest extends AvroTestBase
         
         ObjectMapper mapper = new ObjectMapper(new AvroFactory());
 
-        byte[] bytes = mapper.writer(_simpleSchema).writeValueAsBytes(empl);
+        byte[] bytes = mapper.writer(getEmployeeSchema()).writeValueAsBytes(empl);
         assertNotNull(bytes);
 
         // Currently we get this result... need to verify in future

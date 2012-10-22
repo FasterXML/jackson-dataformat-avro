@@ -1,14 +1,18 @@
 package com.fasterxml.dataformat.avro;
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
 
 import org.apache.avro.Schema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
-public class AvroTestBase extends TestCase
+public abstract class AvroTestBase extends TestCase
 {
-    protected final String SIMPLE_SCHEMA = "{\n"
+    protected final String EMPLOYEE_SCHEMA_JSON = "{\n"
             +"\"type\": \"record\",\n"
             +"\"name\": \"Employee\",\n"
             +"\"fields\": [\n"
@@ -18,8 +22,10 @@ public class AvroTestBase extends TestCase
             +" {\"name\": \"boss\", \"type\": [\"Employee\",\"null\"]}\n"
             +"]}";
 
-    protected AvroSchema _simpleSchema;
+    protected AvroSchema _employeeSchema;
 
+    protected ObjectMapper MAPPER;
+    
     protected static class Employee
     {
         public String name;
@@ -29,7 +35,29 @@ public class AvroTestBase extends TestCase
     }
     
     protected AvroTestBase() {
-        Schema s = new Schema.Parser().setValidate(true).parse(SIMPLE_SCHEMA);
-        _simpleSchema = new AvroSchema(s);
+    }
+
+    protected AvroSchema getEmployeeSchema()
+    {
+        if (_employeeSchema == null) {
+            _employeeSchema = new AvroSchema(new Schema.Parser().setValidate(true).parse(EMPLOYEE_SCHEMA_JSON));
+        }
+        return _employeeSchema;
+    }
+    
+    protected ObjectMapper getMapper() {
+        if (MAPPER == null) {
+            MAPPER = new ObjectMapper(new AvroFactory());
+        }
+        return MAPPER;
+    }
+    
+    protected byte[] toAvro(Employee empl) throws IOException {
+        return toAvro(empl, getMapper());
+    }
+    
+    protected byte[] toAvro(Employee empl, ObjectMapper mapper) throws IOException
+    {
+        return mapper.writer(getEmployeeSchema()).writeValueAsBytes(empl);
     }
 }
