@@ -81,11 +81,13 @@ public class AvroParserImpl extends AvroParser
     @Override
     protected void _initSchema(AvroSchema schema)
     {
+        AvroReadContext ctxt;
         try {
-            _avroContext = new RootContext(this, _decoder, schema.getAvroSchema());
+            ctxt = new RootContext(this, _decoder, schema.getAvroSchema());
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+        setAvroContext(ctxt);
     }
     
     /*
@@ -95,6 +97,9 @@ public class AvroParserImpl extends AvroParser
      */
 
     protected void setAvroContext(AvroReadContext ctxt) {
+        if (ctxt == null) { // sanity check
+            throw new IllegalArgumentException();
+        }
         _avroContext = ctxt;
     }
 

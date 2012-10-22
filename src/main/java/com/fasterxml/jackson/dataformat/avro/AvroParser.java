@@ -116,8 +116,8 @@ public abstract class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = null;
+        _avroContext = EmptyContext.instance;
     }
-
     
     @Override
     public ObjectCodec getCodec() {

@@ -22,7 +22,9 @@ public class SimpleParseTest extends AvroTestBase
 
         System.out.println("Bytes -> "+avro.length);
 
-        Employee result = getMapper().readValue(avro, Employee.class);
+        Employee result = getMapper().reader(Employee.class)
+                .with(getEmployeeSchema())
+                .readValue(avro);
         assertEquals("Bob", result.name);
         assertEquals(39, result.age);
     }
