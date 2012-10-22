@@ -65,6 +65,7 @@ final class RecordContext extends ReadContextBase
             _currentName = curr.name();
             return JsonToken.FIELD_NAME;
         }
+        _currentField = null;
         ++_fieldIndex;
         ReadContextBase child = createContext(curr.schema());
         if (child.isStructured()) {

@@ -57,6 +57,11 @@ public class AvroParserImpl extends AvroParser
             return null;
         }
         JsonToken t = _avroContext.nextToken();
+        /*
+System.err.println("T = "+t+" (from "+_avroContext.getClass().getName()+")");
+System.err.println(" name = "+this.getCurrentName());
+if (t == JsonToken.VALUE_STRING) System.err.println(" text: "+this._textValue);
+*/
         if (t != null) { // usual quick case
             _currToken = t;
             return t;
