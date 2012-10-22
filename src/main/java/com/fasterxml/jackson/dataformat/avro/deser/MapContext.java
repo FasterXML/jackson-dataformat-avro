@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -14,17 +13,25 @@ import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
  */
 public class MapContext extends ReadContextBase
 {
-    protected final Schema _schema;
+    protected final AvroParserImpl _parser;
 
-    protected final List<Schema.Field> _fields;
+    protected final BinaryDecoder _decoder;
 
-    protected Schema.Field _currentField;
+    protected ReadContextBase _elementReader;
+
+    /**
+     * Marker to indicate whether element values are structured
+     * (exposed as Arrays and Objects) or not (simple values)
+     */
+    protected final boolean _isValueStructured;
+    
+    protected long _entryCount;
 
     protected String _currentName;
-    
-    protected final int _fieldCount;
 
-    protected int _fieldIndex = -1;
+    protected boolean _expectName = true;
+    
+    protected int _index = -1;
     
     public MapContext(AvroReadContext parent,
             AvroParserImpl parser, BinaryDecoder decoder,
@@ -32,11 +39,13 @@ public class MapContext extends ReadContextBase
         throws IOException
     {
         super(TYPE_OBJECT, parent, parser, decoder);
-        _schema = schema;
-        _fields = schema.getFields();
-        _fieldCount = _fields.size();
+        _parser = parser;
+        _decoder = decoder;
+        _elementReader = createContext(schema.getElementType());
+        _isValueStructured = _elementReader.isStructured();
+        _entryCount = decoder.readMapStart();
     }
-
+    
     @Override
     public String getCurrentName() {
         return _currentName;
@@ -48,32 +57,31 @@ public class MapContext extends ReadContextBase
     @Override
     public JsonToken nextToken() throws IOException
     {
-        if (_fieldIndex < 0) {
-            _fieldIndex = 0;
+        if (_index < 0) {
+            _index = 0;
             return JsonToken.START_OBJECT;
         }
-        Schema.Field curr = _currentField;
-        if (curr == null) {
-            // at the end (or after)?
-            if (_fieldIndex >= _fieldCount) {
-                if (_fieldIndex == _fieldCount) {
-                    ++_fieldIndex;
-                    return JsonToken.END_OBJECT;
-                }
-                return null;
+        if (_index >= _entryCount) { // end?
+            // after exhausting entries, need to indicate end
+            if (_index == _entryCount) {
+                ++_entryCount;
+                return JsonToken.START_OBJECT;
             }
-            curr = _fields.get(_fieldIndex);
-            _currentField = curr;
-            _currentName = curr.name();
+            // but after that null to know this context is done
+            return null;
+        }
+        if (_expectName) {
+            _expectName = false;
+            _currentName = _decoder.readString();
             return JsonToken.FIELD_NAME;
         }
-        ++_fieldIndex;
-        ReadContextBase child = createContext(curr.schema());
-        if (child.isStructured()) {
-            _parser.setAvroContext(child);
-            return child.nextToken();
+        _expectName = true;
+        ++_index;
+        if (_elementReader.isStructured()) {
+            _parser.setAvroContext(_elementReader);
+            return _elementReader.nextToken();
         }
-        return child.readValue(_parser, _decoder);
+        return _elementReader.readValue(_parser, _decoder);
     }
     
     @Override

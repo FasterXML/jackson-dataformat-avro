@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -147,9 +148,10 @@ abstract class ReadContextBase
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
             throws IOException
         {
-//            byte[] bytes = dec.readBy
-            // !!! TODO
-            return null;
+            ByteBuffer bb = parser.borrowByteBuffer();
+            decoder.readBytes(bb);
+            parser.setBytes(bb);
+            return JsonToken.VALUE_EMBEDDED_OBJECT;
         }
     }
 
@@ -159,9 +161,7 @@ abstract class ReadContextBase
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
             throws IOException
         {
-            double v = decoder.readDouble();
-            // !!! TODO: callback
-            return JsonToken.VALUE_NUMBER_FLOAT;
+            return parser.setNumber(decoder.readDouble());
         }
     }
 
@@ -171,9 +171,7 @@ abstract class ReadContextBase
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
                 throws IOException
         {
-            float v = decoder.readFloat();
-            // !!! TODO: callback
-            return JsonToken.VALUE_NUMBER_FLOAT;
+            return parser.setNumber(decoder.readFloat());
         }
     }
 
@@ -184,9 +182,7 @@ abstract class ReadContextBase
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
                 throws IOException
         {
-            int v = decoder.readInt();
-            // !!! TODO: callback
-            return JsonToken.VALUE_NUMBER_INT;
+            return parser.setNumber(decoder.readInt());
         }
     }
 
@@ -197,9 +193,7 @@ abstract class ReadContextBase
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
                 throws IOException
         {
-            long v = decoder.readLong();
-            // !!! TODO: callback
-            return JsonToken.VALUE_NUMBER_INT;
+            return parser.setNumber(decoder.readLong());
         }
     }
 
@@ -218,8 +212,7 @@ abstract class ReadContextBase
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
             throws IOException
         {
-            String str = decoder.readString();
-            return JsonToken.VALUE_STRING;
+            return parser.setString(decoder.readString());
         }
     }    
 }

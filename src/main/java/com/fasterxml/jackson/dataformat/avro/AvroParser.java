@@ -351,7 +351,7 @@ public abstract class AvroParser extends ParserBase
 
     @Override
     public Object getEmbeddedObject() throws IOException, JsonParseException {
-        return null;
+        return _binaryValue;
     }
     
     @Override

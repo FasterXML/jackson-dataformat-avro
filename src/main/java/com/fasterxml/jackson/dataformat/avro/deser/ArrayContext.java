@@ -25,8 +25,8 @@ final class ArrayContext extends ReadContextBase
     protected long _currentCount = 0;
     
     protected long _index = -1L; // marker for 'return START_ARRAY'
-    
-    protected ReadContextBase _child;
+
+    protected ReadContextBase _elementReader;
 
     /**
      * Marker to indicate whether element values are structured
@@ -42,8 +42,8 @@ final class ArrayContext extends ReadContextBase
         super(TYPE_ARRAY, parent, parser, decoder);
         _parser = parser;
         _decoder = decoder;
-        _child = createContext(schema.getElementType());
-        _isValueStructured = _child.isStructured();
+        _elementReader = createContext(schema.getElementType());
+        _isValueStructured = _elementReader.isStructured();
     }
 
     @Override
@@ -80,10 +80,10 @@ final class ArrayContext extends ReadContextBase
         }
         ++_index;
         if (_isValueStructured) {
-            _parser.setAvroContext(_child);
-            return _child.nextToken();
+            _parser.setAvroContext(_elementReader);
+            return _elementReader.nextToken();
         }
-        return _child.readValue(_parser, _decoder);
+        return _elementReader.readValue(_parser, _decoder);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.fasterxml.jackson.dataformat.avro.deser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
@@ -20,7 +21,11 @@ import com.fasterxml.jackson.dataformat.avro.AvroSchema;
  */
 public class AvroParserImpl extends AvroParser
 {
+    protected final static byte[] NO_BYTES = new byte[0];
+    
     protected final BinaryDecoder _decoder;
+
+    protected ByteBuffer _byteBuffer;
     
     public AvroParserImpl(IOContext ctxt, int parserFeatures, int avroFeatures,
             ObjectCodec codec, InputStream in)
@@ -93,4 +98,50 @@ public class AvroParserImpl extends AvroParser
         _avroContext = ctxt;
     }
 
+    protected ByteBuffer borrowByteBuffer() {
+        return _byteBuffer;
+    }
+    
+    protected void setBytes(ByteBuffer bb)
+    {
+        int len = bb.remaining();
+        if (len <= 0) {
+            _binaryValue = NO_BYTES;
+            return;
+        }
+        _binaryValue = new byte[len];
+        bb.get(_binaryValue);
+        // plus let's retain reference to this buffer, for reuse
+        // (is safe due to way Avro impl handles them)
+        _byteBuffer = bb;
+    }
+
+    protected JsonToken setNumber(int v) {
+        _numberInt = v;
+        _numTypesValid = NR_INT;
+        return JsonToken.VALUE_NUMBER_INT;
+    }
+
+    protected JsonToken setNumber(long v) {
+        _numberLong = v;
+        _numTypesValid = NR_LONG;
+        return JsonToken.VALUE_NUMBER_INT;
+    }
+
+    protected JsonToken setNumber(float v) {
+        _numberDouble = v;
+        _numTypesValid = NR_DOUBLE;
+        return JsonToken.VALUE_NUMBER_FLOAT;
+    }
+
+    protected JsonToken setNumber(double v) {
+        _numberDouble = v;
+        _numTypesValid = NR_DOUBLE;
+        return JsonToken.VALUE_NUMBER_FLOAT;
+    }
+
+    protected JsonToken setString(String str) {
+        _textValue = str;
+        return JsonToken.VALUE_STRING;
+    }
 }
