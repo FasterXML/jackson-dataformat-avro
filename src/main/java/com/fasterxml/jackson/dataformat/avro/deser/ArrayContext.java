@@ -28,6 +28,8 @@ final class ArrayContext extends ReadContextBase
 
     protected ReadContextBase _elementReader;
 
+    protected String _currentName;
+    
     /**
      * Marker to indicate whether element values are structured
      * (exposed as Arrays and Objects) or not (simple values)
@@ -48,6 +50,14 @@ final class ArrayContext extends ReadContextBase
 
     @Override
     protected boolean isStructured() { return true; }
+
+    @Override
+    public String getCurrentName() {
+        if (_currentName == null) {
+            _currentName = _parent.getCurrentName();
+        }
+        return _currentName;
+    }
     
     @Override
     public JsonToken nextToken() throws IOException

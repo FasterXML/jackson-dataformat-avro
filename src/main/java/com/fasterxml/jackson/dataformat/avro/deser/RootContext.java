@@ -28,6 +28,10 @@ public final class RootContext extends ReadContextBase
         _child = createContext(schema);
         parser.setAvroContext(_child);
     }
+
+    public AvroReadContext getActualContext() {
+        return _child;
+    }
     
     @Override
     public JsonToken nextToken() throws IOException

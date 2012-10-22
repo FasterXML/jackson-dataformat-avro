@@ -81,13 +81,19 @@ public class AvroParserImpl extends AvroParser
     @Override
     protected void _initSchema(AvroSchema schema)
     {
-        AvroReadContext ctxt;
+        /* Two-phase construction: first, create root context so
+         * that context stack looks same as with JSON.
+         * And then use the contained context as the active one,
+         * to handle actual parsing correctly and without having
+         * to make root context stateful.
+         */
+        RootContext ctxt;
         try {
             ctxt = new RootContext(this, _decoder, schema.getAvroSchema());
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
-        setAvroContext(ctxt);
+        _avroContext = ctxt.getActualContext();
     }
     
     /*

@@ -86,11 +86,6 @@ public abstract class AvroParser extends ParserBase
      * We need to keep track of text values.
      */
     protected String _textValue;
-
-    /**
-     * Let's also have a local copy of the current field name
-     */
-    protected String _currentFieldName;
     
     /*
     /**********************************************************************
@@ -295,7 +290,7 @@ public abstract class AvroParser extends ParserBase
             return _textValue;
         }
         if (_currToken == JsonToken.FIELD_NAME) {
-            return _currentFieldName;
+            return _avroContext.getCurrentName();
         }
         if (_currToken != null) {
             if (_currToken.isScalarValue()) {
@@ -309,9 +304,6 @@ public abstract class AvroParser extends ParserBase
     @Override
     public String getCurrentName() throws IOException, JsonParseException
     {
-        if (_currToken == JsonToken.FIELD_NAME) {
-            return _currentFieldName;
-        }
         return _avroContext.getCurrentName();
     }
 
