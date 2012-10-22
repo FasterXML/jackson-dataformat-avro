@@ -13,6 +13,11 @@ import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
  */
 final class ArrayContext extends ReadContextBase
 {
+    protected final static int STATE_START = 0;
+    protected final static int STATE_ELEMENTS = 1;
+    protected final static int STATE_END = 2;
+    protected final static int STATE_DONE = 3;
+    
     protected final AvroParserImpl _parser;
 
     protected final BinaryDecoder _decoder;
@@ -22,13 +27,15 @@ final class ArrayContext extends ReadContextBase
      * if positive non-zero number; otherwise indicates end
      * of content
      */
-    protected long _currentCount = 0;
+    protected long _currentCount;
     
-    protected long _index = -1L; // marker for 'return START_ARRAY'
+    protected long _index; // marker for 'return START_ARRAY'
 
     protected ReadContextBase _elementReader;
 
     protected String _currentName;
+
+    protected int _state;
     
     /**
      * Marker to indicate whether element values are structured
@@ -46,6 +53,7 @@ final class ArrayContext extends ReadContextBase
         _decoder = decoder;
         _elementReader = createContext(schema.getElementType());
         _isValueStructured = _elementReader.isStructured();
+        _currentCount = _decoder.readArrayStart();
     }
 
     @Override
@@ -62,30 +70,24 @@ final class ArrayContext extends ReadContextBase
     @Override
     public JsonToken nextToken() throws IOException
     {
-        /* Called on array:
-         * 
-         * 1. Initially, to return START_ARRAY
-         * 
-         */
-        if (_index >= _currentCount) { // no data ready to be read
-            // initial state, before any reads?
-            if (_index < 0L) { // initial
-                _currentCount = _decoder.readArrayStart();
-                _index = 0L;
-                return JsonToken.START_ARRAY;
-            }
-            // see if we can fetch more?
-            if (_currentCount >= 0L) {
-                _index = 0L;
-                _currentCount = _decoder.arrayNext();
-            }
+        switch (_state) {
+        case STATE_START:
+            _state = (_currentCount > 0) ? STATE_ELEMENTS : STATE_END;
+            return JsonToken.START_ARRAY;
+        case STATE_ELEMENTS:
+            break;
+        case STATE_END:
+            _state = STATE_DONE;
+            return JsonToken.END_ARRAY;
+        case STATE_DONE:
+            return null;
+        }
+        if (_index >= _currentCount) { // need more data
+            _currentCount = _decoder.arrayNext();
             // all traversed?
             if (_currentCount <= 0L) {
-                if (_index >= 0L) {
-                    _index = -1L;
-                    return JsonToken.END_ARRAY;
-                }
-                return null;
+                _state = STATE_DONE;
+                return JsonToken.END_ARRAY;
             }
         }
         ++_index;
