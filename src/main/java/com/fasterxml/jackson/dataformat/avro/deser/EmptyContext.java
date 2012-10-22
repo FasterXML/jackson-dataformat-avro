@@ -1,7 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
-import org.apache.avro.io.BinaryDecoder;
-
 import com.fasterxml.jackson.core.JsonToken;
 
 import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
@@ -16,7 +14,7 @@ public class EmptyContext extends AvroReadContext
     }
 
     @Override
-    public JsonToken nextToken(BinaryDecoder decoder) {
+    public JsonToken nextToken() {
         _reportError();
         return null;
     }

@@ -51,7 +51,7 @@ public class AvroParserImpl extends AvroParser
         if (_closed) {
             return null;
         }
-        JsonToken t = _avroContext.nextToken(_decoder);
+        JsonToken t = _avroContext.nextToken();
         if (t != null) { // usual quick case
             _currToken = t;
             return t;
@@ -65,7 +65,7 @@ public class AvroParserImpl extends AvroParser
                 return null;
             }
             _avroContext = ctxt;
-            t = ctxt.nextToken(_decoder);
+            t = ctxt.nextToken();
             if (t != null) {
                 _currToken = t;
                 return t;
@@ -77,7 +77,7 @@ public class AvroParserImpl extends AvroParser
     protected void _initSchema(AvroSchema schema)
     {
         try {
-            _avroContext = new RootContext(this, schema.getAvroSchema());
+            _avroContext = new RootContext(this, _decoder, schema.getAvroSchema());
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

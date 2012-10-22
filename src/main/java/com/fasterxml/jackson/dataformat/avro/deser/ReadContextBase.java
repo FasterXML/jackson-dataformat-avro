@@ -16,20 +16,21 @@ abstract class ReadContextBase
     protected final static ScalarValueContext DECODER_DOUBLE = new DoubleReader();
     protected final static ScalarValueContext DECODER_FLOAT = new FloatReader();
     protected final static ScalarValueContext DECODER_INT = new IntReader();
+    protected final static ScalarValueContext DECODER_LONG = new LongReader();
     protected final static ScalarValueContext DECODER_NULL = new NullReader();
     protected final static ScalarValueContext DECODER_STRING = new StringReader();
-    
-    protected final AvroReadContext _parent;
 
     protected final AvroParserImpl _parser;
     
+    protected final BinaryDecoder _decoder;
+    
     protected ReadContextBase(int type, AvroReadContext parent,
-            AvroParserImpl parser)
+            AvroParserImpl parser, BinaryDecoder decoder)
     {
         super(parent);
         _type = type;
-        _parent = parent;
         _parser = parser;
+        _decoder = decoder;
     }
 
     /**
@@ -43,7 +44,7 @@ abstract class ReadContextBase
     {
         switch (schema.getType()) {
         case ARRAY:
-            return new ArrayContext(this, _parser, schema);
+            return new ArrayContext(this, _parser, _decoder, schema);
         case BOOLEAN:
             return DECODER_BOOLEAN;
         case BYTES: 
@@ -61,13 +62,13 @@ abstract class ReadContextBase
         case INT: 
             return DECODER_INT;
         case LONG: 
-            return DECODER_NULL;
+            return DECODER_LONG;
         case MAP: 
-            return new MapContext(this, _parser, schema);
+            return new MapContext(this, _parser, _decoder, schema);
         case NULL: 
             return DECODER_NULL;
         case RECORD:
-            return new RecordContext(this, _parser, schema);
+            return new RecordContext(this, _parser, _decoder, schema);
         case STRING: 
             return DECODER_STRING;
         case UNION:
@@ -78,6 +79,20 @@ abstract class ReadContextBase
 
     protected abstract boolean isStructured();
 
+    /**
+     * Method only to be called on instances that return <code>false</code>
+     * for {@link #isStructured}.
+     */
+    protected JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException
+    {
+        return _throwUnsupported();
+    }
+
+    protected <T> T _throwUnsupported() {
+        throw new IllegalStateException("Can not call on "+getClass().getName());
+    }
+    
     /*
     /**********************************************************
     /* Simple leaf-value context implementations
@@ -94,7 +109,7 @@ abstract class ReadContextBase
     {
         protected ScalarValueContext() {
             // no real type, not exposed to calling app, nor linked
-            super(0, null, null);
+            super(0, null, null, null);
         }
 
         @Override
@@ -106,20 +121,32 @@ abstract class ReadContextBase
         protected void appendDesc(StringBuilder sb) {
             sb.append("?");
         }
+
+        @Override public final JsonToken nextToken() throws IOException {
+            return _throwUnsupported();
+        }
+
+        @Override
+        protected abstract JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException;
     }
 
     protected final static class BooleanReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            return dec.readBoolean() ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
+        @Override
+        protected JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException {
+            return decoder.readBoolean() ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
         }
     }
 
     protected final static class BytesReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
+        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException
+        {
 //            byte[] bytes = dec.readBy
             // !!! TODO
             return null;
@@ -129,8 +156,10 @@ abstract class ReadContextBase
     protected final static class DoubleReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            double v = dec.readDouble();
+        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException
+        {
+            double v = decoder.readDouble();
             // !!! TODO: callback
             return JsonToken.VALUE_NUMBER_FLOAT;
         }
@@ -139,8 +168,10 @@ abstract class ReadContextBase
     protected final static class FloatReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            float v = dec.readFloat();
+        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+                throws IOException
+        {
+            float v = decoder.readFloat();
             // !!! TODO: callback
             return JsonToken.VALUE_NUMBER_FLOAT;
         }
@@ -149,8 +180,11 @@ abstract class ReadContextBase
     protected final static class IntReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            int v = dec.readInt();
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+                throws IOException
+        {
+            int v = decoder.readInt();
             // !!! TODO: callback
             return JsonToken.VALUE_NUMBER_INT;
         }
@@ -159,8 +193,11 @@ abstract class ReadContextBase
     protected final static class LongReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            long v = dec.readLong();
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+                throws IOException
+        {
+            long v = decoder.readLong();
             // !!! TODO: callback
             return JsonToken.VALUE_NUMBER_INT;
         }
@@ -169,7 +206,7 @@ abstract class ReadContextBase
     protected final static class NullReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
+        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) {
             return JsonToken.VALUE_NULL;
         }
     }
@@ -177,10 +214,12 @@ abstract class ReadContextBase
     protected final static class StringReader
         extends ScalarValueContext
     {
-        @Override public JsonToken nextToken(BinaryDecoder dec) throws IOException {
-            String str = dec.readString();
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+            throws IOException
+        {
+            String str = decoder.readString();
             return JsonToken.VALUE_STRING;
         }
-    }
-    
+    }    
 }

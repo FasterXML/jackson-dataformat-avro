@@ -21,15 +21,16 @@ public final class RootContext extends ReadContextBase
 {
     protected final AvroReadContext _child;
     
-    public RootContext(AvroParserImpl parser, Schema schema) throws IOException
+    public RootContext(AvroParserImpl parser, BinaryDecoder decoder,
+            Schema schema) throws IOException
     {
-        super(TYPE_ROOT, null, parser);
+        super(TYPE_ROOT, null, parser, decoder);
         _child = createContext(schema);
         parser.setAvroContext(_child);
     }
     
     @Override
-    public JsonToken nextToken(BinaryDecoder dec) throws IOException
+    public JsonToken nextToken() throws IOException
     {
         // we have set child context to be the current for parser,
         // and we are only called when it ends; so should be ok

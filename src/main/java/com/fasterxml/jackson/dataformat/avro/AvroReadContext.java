@@ -2,8 +2,6 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.IOException;
 
-import org.apache.avro.io.BinaryDecoder;
-
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
 
@@ -27,7 +25,7 @@ public abstract class AvroReadContext extends JsonStreamContext
         _parent = parent;
     }
 
-    public abstract JsonToken nextToken(BinaryDecoder dec) throws IOException;
+    public abstract JsonToken nextToken() throws IOException;
     
     /*
     /**********************************************************

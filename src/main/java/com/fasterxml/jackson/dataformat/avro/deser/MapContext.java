@@ -27,10 +27,11 @@ public class MapContext extends ReadContextBase
     protected int _fieldIndex = -1;
     
     public MapContext(AvroReadContext parent,
-            AvroParserImpl parser, Schema schema)
+            AvroParserImpl parser, BinaryDecoder decoder,
+            Schema schema)
         throws IOException
     {
-        super(TYPE_OBJECT, parent, parser);
+        super(TYPE_OBJECT, parent, parser, decoder);
         _schema = schema;
         _fields = schema.getFields();
         _fieldCount = _fields.size();
@@ -45,7 +46,7 @@ public class MapContext extends ReadContextBase
     protected boolean isStructured() { return true; }
     
     @Override
-    public JsonToken nextToken(BinaryDecoder decoder) throws IOException
+    public JsonToken nextToken() throws IOException
     {
         if (_fieldIndex < 0) {
             _fieldIndex = 0;
@@ -70,9 +71,9 @@ public class MapContext extends ReadContextBase
         ReadContextBase child = createContext(curr.schema());
         if (child.isStructured()) {
             _parser.setAvroContext(child);
-            return child.nextToken(decoder);
+            return child.nextToken();
         }
-        return child.nextToken(decoder);
+        return child.readValue(_parser, _decoder);
     }
     
     @Override

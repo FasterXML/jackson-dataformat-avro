@@ -13,6 +13,10 @@ import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
  */
 final class ArrayContext extends ReadContextBase
 {
+    protected final AvroParserImpl _parser;
+
+    protected final BinaryDecoder _decoder;
+    
     /**
      * Number of elements in current chunk of array elements,
      * if positive non-zero number; otherwise indicates end
@@ -31,10 +35,13 @@ final class ArrayContext extends ReadContextBase
     protected final boolean _isValueStructured;
 
     public ArrayContext(AvroReadContext parent,
-            AvroParserImpl parser, Schema schema)
+            AvroParserImpl parser, BinaryDecoder decoder,
+            Schema schema)
         throws IOException
     {
-        super(TYPE_ARRAY, parent, parser);
+        super(TYPE_ARRAY, parent, parser, decoder);
+        _parser = parser;
+        _decoder = decoder;
         _child = createContext(schema.getElementType());
         _isValueStructured = _child.isStructured();
     }
@@ -43,7 +50,7 @@ final class ArrayContext extends ReadContextBase
     protected boolean isStructured() { return true; }
     
     @Override
-    public JsonToken nextToken(BinaryDecoder decoder) throws IOException
+    public JsonToken nextToken() throws IOException
     {
         /* Called on array:
          * 
@@ -53,14 +60,14 @@ final class ArrayContext extends ReadContextBase
         if (_index >= _currentCount) { // no data ready to be read
             // initial state, before any reads?
             if (_index < 0L) { // initial
-                _currentCount = decoder.readArrayStart();
+                _currentCount = _decoder.readArrayStart();
                 _index = 0L;
                 return JsonToken.START_ARRAY;
             }
             // see if we can fetch more?
             if (_currentCount >= 0L) {
                 _index = 0L;
-                _currentCount = decoder.arrayNext();
+                _currentCount = _decoder.arrayNext();
             }
             // all traversed?
             if (_currentCount <= 0L) {
@@ -74,8 +81,9 @@ final class ArrayContext extends ReadContextBase
         ++_index;
         if (_isValueStructured) {
             _parser.setAvroContext(_child);
+            return _child.nextToken();
         }
-        return _child.nextToken(decoder);
+        return _child.readValue(_parser, _decoder);
     }
 
     @Override
