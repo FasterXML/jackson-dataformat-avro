@@ -12,15 +12,6 @@ import com.fasterxml.jackson.dataformat.avro.*;
 abstract class ReadContextBase
     extends AvroReadContext
 {
-    protected final static ScalarValueContext DECODER_BOOLEAN = new BooleanReader();
-    protected final static ScalarValueContext DECODER_BYTES = new BytesReader();
-    protected final static ScalarValueContext DECODER_DOUBLE = new DoubleReader();
-    protected final static ScalarValueContext DECODER_FLOAT = new FloatReader();
-    protected final static ScalarValueContext DECODER_INT = new IntReader();
-    protected final static ScalarValueContext DECODER_LONG = new LongReader();
-    protected final static ScalarValueContext DECODER_NULL = new NullReader();
-    protected final static ScalarValueContext DECODER_STRING = new StringReader();
-
     protected final AvroParserImpl _parser;
     
     protected final BinaryDecoder _decoder;
@@ -60,7 +51,7 @@ abstract class ReadContextBase
             break;
         case FLOAT: 
             return DECODER_FLOAT;
-        case INT: 
+        case INT:
             return DECODER_INT;
         case LONG: 
             return DECODER_LONG;
@@ -132,87 +123,5 @@ abstract class ReadContextBase
             throws IOException;
     }
 
-    protected final static class BooleanReader
-        extends ScalarValueContext
-    {
-        @Override
-        protected JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-            throws IOException {
-            return decoder.readBoolean() ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
-        }
-    }
 
-    protected final static class BytesReader
-        extends ScalarValueContext
-    {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-            throws IOException
-        {
-            ByteBuffer bb = parser.borrowByteBuffer();
-            decoder.readBytes(bb);
-            parser.setBytes(bb);
-            return JsonToken.VALUE_EMBEDDED_OBJECT;
-        }
-    }
-
-    protected final static class DoubleReader
-        extends ScalarValueContext
-    {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-            throws IOException
-        {
-            return parser.setNumber(decoder.readDouble());
-        }
-    }
-
-    protected final static class FloatReader
-        extends ScalarValueContext
-    {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-                throws IOException
-        {
-            return parser.setNumber(decoder.readFloat());
-        }
-    }
-
-    protected final static class IntReader
-        extends ScalarValueContext
-    {
-        @Override
-        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-                throws IOException
-        {
-            return parser.setNumber(decoder.readInt());
-        }
-    }
-
-    protected final static class LongReader
-        extends ScalarValueContext
-    {
-        @Override
-        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-                throws IOException
-        {
-            return parser.setNumber(decoder.readLong());
-        }
-    }
-
-    protected final static class NullReader
-        extends ScalarValueContext
-    {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) {
-            return JsonToken.VALUE_NULL;
-        }
-    }
-
-    protected final static class StringReader
-        extends ScalarValueContext
-    {
-        @Override
-        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-            throws IOException
-        {
-            return parser.setString(decoder.readString());
-        }
-    }    
 }

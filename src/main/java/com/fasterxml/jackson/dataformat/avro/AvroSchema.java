@@ -1,8 +1,11 @@
 package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.core.FormatSchema;
+import com.fasterxml.jackson.dataformat.avro.deser.AvroParserImpl;
+import com.fasterxml.jackson.dataformat.avro.deser.AvroValueReader;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -10,15 +13,21 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 
+/**
+ * Wrapper for Schema information needed to encode and decode Avro-format
+ * data.
+ */
 public class AvroSchema implements FormatSchema
 {
     public final static String TYPE_ID = "avro";
 
     protected final static DecoderFactory DECODER_FACTORY = DecoderFactory.get();
 
-    protected final static EncoderFactory ENCODER_FACTORY= EncoderFactory.get();
+    protected final static EncoderFactory ENCODER_FACTORY = EncoderFactory.get();
     
     protected final Schema _avroSchema;
+
+    protected final AtomicReference<AvroValueReader> _reader = new AtomicReference<AvroValueReader>();
     
     public AvroSchema(Schema asch)
     {
@@ -39,4 +48,14 @@ public class AvroSchema implements FormatSchema
     public BinaryEncoder encoder(OutputStream out) {
         return ENCODER_FACTORY.binaryEncoder(out, null);
    }
+
+    public AvroValueReader getReader(InputStream in, AvroParserImpl parser)
+    {
+        AvroValueReader r = _reader.get();
+        if (r == null) {
+            r = AvroValueReader.createReader(_avroSchema);
+            _reader.set(r);
+        }
+        return r.newReader(decoder(in), parser);
+    }
 }

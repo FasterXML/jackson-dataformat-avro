@@ -118,20 +118,27 @@ if (t == JsonToken.VALUE_STRING) System.err.println(" text: "+this._textValue);
         return _byteBuffer;
     }
     
-    protected void setBytes(ByteBuffer bb)
+    protected JsonToken setBytes(ByteBuffer bb)
     {
         int len = bb.remaining();
         if (len <= 0) {
             _binaryValue = NO_BYTES;
-            return;
+        } else {
+            _binaryValue = new byte[len];
+            bb.get(_binaryValue);
+            // plus let's retain reference to this buffer, for reuse
+            // (is safe due to way Avro impl handles them)
+            _byteBuffer = bb;
         }
-        _binaryValue = new byte[len];
-        bb.get(_binaryValue);
-        // plus let's retain reference to this buffer, for reuse
-        // (is safe due to way Avro impl handles them)
-        _byteBuffer = bb;
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
     }
 
+    protected JsonToken setBytes(byte[] b)
+    {
+        _binaryValue = b;
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
+    }
+    
     protected JsonToken setNumber(int v) {
         _numberInt = v;
         _numTypesValid = NR_INT;
