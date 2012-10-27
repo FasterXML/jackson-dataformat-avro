@@ -31,9 +31,9 @@ public abstract class AvroStructureReader
     private static AvroStructureReader createArrayReader(Schema schema)
     {
         Schema elementType = schema.getElementType();
-        AvroScalarReader dec = AvroScalarReader.createDecoder(elementType);
-        if (dec != null) {
-            return new ScalarArrayReader(dec);
+        AvroScalarReader scalar = AvroScalarReader.createDecoder(elementType);
+        if (scalar != null) {
+            return new ScalarArrayReader(scalar);
         }
         return new NonScalarArrayReader(createReader(elementType));
     }
@@ -51,17 +51,36 @@ public abstract class AvroStructureReader
     private static AvroStructureReader createRecordReader(Schema schema)
     {
         final List<Schema.Field> fields = schema.getFields();
-        Schema elementType = schema.getElementType();
-        AvroScalarReader dec = AvroScalarReader.createDecoder(elementType);
-        if (dec != null) {
-            return new ScalarRecordReader(dec);
+        AvroFieldReader[] fieldReaders = new AvroFieldReader[fields.size()];
+        int i = 0;
+        for (Schema.Field field : fields) {
+            fieldReaders[i++] = createFieldReader(field);
         }
-        return new NonScalarRecordReader(createReader(elementType));
+        return new RecordReader(fieldReaders);
     }
-
+    
     private static AvroStructureReader createUnionReader(Schema schema)
     {
-        return null;
+        final List<Schema> types = schema.getTypes();
+        AvroFieldReader[] typeReaders = new AvroFieldReader[types.size()];
+        int i = 0;
+        for (Schema type : types) {
+            typeReaders[i++] = createFieldReader(type);
+        }
+        return new UnionReader(typeReaders);
+    }
+
+    private static AvroFieldReader createFieldReader(Schema.Field field) {
+        return createFieldReader(field.schema());
+    }
+
+    private static AvroFieldReader createFieldReader(Schema type)
+    {
+        AvroScalarReader scalar = AvroScalarReader.createDecoder(type);
+        if (scalar != null) {
+            return new AvroFieldReader(scalar);
+        }
+        return new AvroFieldReader(createReader(type));
     }
     
     public abstract AvroStructureReader newReader(BinaryDecoder decoder, AvroParserImpl parser);
@@ -176,61 +195,84 @@ public abstract class AvroStructureReader
     
     /*
     /**********************************************************************
-    /* Reader implementations for Avro records
+    /* Reader implementation for Avro records
     /**********************************************************************
      */
 
-    private final static class ScalarRecordReader extends AvroStructureReader
+    private final static class RecordReader extends AvroStructureReader
     {
-        private final AvroScalarReader _valueReader;
+        private final AvroFieldReader[] _fieldReaders;
         private final BinaryDecoder _decoder;
         private final AvroParserImpl _parser;
         
-        public ScalarRecordReader(AvroScalarReader reader) {
-            this(reader, null, null);
+        public RecordReader(AvroFieldReader[] fieldReaders) {
+            this(fieldReaders, null, null);
         }
 
-        private ScalarRecordReader(AvroScalarReader reader, 
+        private RecordReader(AvroFieldReader[] fieldReaders,
                 BinaryDecoder decoder, AvroParserImpl parser) {
-            _valueReader = reader;
+            _fieldReaders = fieldReaders;
             _decoder = decoder;
             _parser = parser;
         }
         
         @Override
-        public ScalarRecordReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
-            return new ScalarRecordReader(_valueReader, decoder, parser);
-        }
-        
-    }
-
-    private final static class NonScalarRecordReader extends AvroStructureReader
-    {
-        private final AvroStructureReader _valueReader;
-        private final BinaryDecoder _decoder;
-        private final AvroParserImpl _parser;
-        
-        public NonScalarRecordReader(AvroStructureReader reader) {
-            this(reader, null, null);
-        }
-
-        private NonScalarRecordReader(AvroStructureReader reader, 
-                BinaryDecoder decoder, AvroParserImpl parser) {
-            _valueReader = reader;
-            _decoder = decoder;
-            _parser = parser;
-        }
-        
-        @Override
-        public NonScalarRecordReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
-            return new NonScalarRecordReader(_valueReader, decoder, parser);
+        public RecordReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
+            return new RecordReader(_fieldReaders, decoder, parser);
         }
         
     }
     
     /*
     /**********************************************************************
-    /* Reader implementations for Avro unions
+    /* Reader implementation for Avro unions
     /**********************************************************************
      */
+
+    private final static class UnionReader extends AvroStructureReader
+    {
+        private final AvroFieldReader[] _memberReaders;
+        private final BinaryDecoder _decoder;
+        private final AvroParserImpl _parser;
+        
+        public UnionReader(AvroFieldReader[] memberReaders) {
+            this(memberReaders, null, null);
+        }
+
+        private UnionReader(AvroFieldReader[] memberReaders,
+                BinaryDecoder decoder, AvroParserImpl parser) {
+            _memberReaders = memberReaders;
+            _decoder = decoder;
+            _parser = parser;
+        }
+        
+        @Override
+        public UnionReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
+            return new UnionReader(_memberReaders, decoder, parser);
+        }
+        
+    }
+
+    private final static class ScalarDecoderWrapper extends AvroStructureReader
+    {
+        private final AvroScalarReader _wrappedReader;
+        private final BinaryDecoder _decoder;
+        private final AvroParserImpl _parser;
+        
+        public ScalarDecoderWrapper(AvroScalarReader wrappedReader) {
+            this(wrappedReader, null, null);
+        }
+
+        private ScalarDecoderWrapper(AvroScalarReader wrappedReader,
+                BinaryDecoder decoder, AvroParserImpl parser) {
+            _wrappedReader = wrappedReader;
+            _decoder = decoder;
+            _parser = parser;
+        }
+        
+        @Override
+        public ScalarDecoderWrapper newReader(BinaryDecoder decoder, AvroParserImpl parser) {
+            return new ScalarDecoderWrapper(_wrappedReader, decoder, parser);
+        }
+    }
 }
