@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
 
 import org.apache.avro.Schema;
@@ -44,29 +45,23 @@ public abstract class AvroScalarReader
         case STRING: 
             return DECODER_STRING;
         case UNION:
-            // First, a quick check: certain kinds of Unions can be "peeled off"...
-            // This works if:
-            // (a) one of types is NULL and
-            // (b) the other type is scalar decoder
+            /* Union is a "scalar union" if all the alternative types
+             * are scalar. One common type is that of "nullable" one,
+             * but general handling should work just fine.
+             */
+            List<Schema> types = type.getTypes();
             {
-                List<Schema> types = type.getTypes();
-                if (types.size() == 2) {
-                    if (types.get(0).getType() == Schema.Type.NULL) {
-                        AvroScalarReader dec = createDecoder(types.get(1));
-                        if (dec != null) {
-                            return new NullableScalarDecoder(0, dec);
-                        }
-                    } else if (types.get(1).getType() == Schema.Type.NULL) {
-                        AvroScalarReader dec = createDecoder(types.get(0));
-                        if (dec != null) {
-                            return new NullableScalarDecoder(1, dec);
-                        }
+                AvroScalarReader[] readers = new AvroScalarReader[types.size()];
+                int i = 0;
+                for (Schema schema : types) {
+                    AvroScalarReader reader = createDecoder(schema);
+                    if (reader == null) { // non-scalar; no go
+                        return null;
                     }
+                    readers[i++] = reader;
                 }
+                return new ScalarUnionReader(readers);
             }
-            // otherwise, can't create simple decoder for unions
-            return null;
-            
         case ARRAY: // ok to call just can't handle
         case MAP:
         case RECORD:
@@ -86,17 +81,13 @@ public abstract class AvroScalarReader
     /**********************************************************************
      */
 
-    protected final static class NullableScalarDecoder
+    protected final static class ScalarUnionReader
         extends AvroScalarReader
     {
-        protected final int _nullIndex;
+        public final AvroScalarReader[] _readers;
 
-        public final AvroScalarReader _nonNullDecoder;
-
-        public NullableScalarDecoder(int nullIndex, AvroScalarReader nonNullDecoder)
-        {
-            _nullIndex = nullIndex;
-            _nonNullDecoder = nonNullDecoder;            
+        public ScalarUnionReader(AvroScalarReader[] readers) {
+            _readers = readers;
         }
         
         @Override
@@ -104,10 +95,12 @@ public abstract class AvroScalarReader
             throws IOException
         {
             int index = decoder.readIndex();
-            if (index == _nullIndex) {
-                return JsonToken.VALUE_NULL;
+            if (index < 0 || index >= _readers.length) {
+                throw new JsonParseException("Invalid index ("+index+"); union only has "
+                        +_readers.length+" types",
+                        parser.getCurrentLocation());
             }
-            return _nonNullDecoder.readValue(parser, decoder);
+            return _readers[index].readValue(parser, decoder);
         }
     }
     

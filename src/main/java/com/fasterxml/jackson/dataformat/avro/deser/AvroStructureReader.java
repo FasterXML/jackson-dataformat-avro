@@ -1,9 +1,13 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonToken;
 
 /**
  * Base class for handlers for Avro structured types (or, in case of
@@ -11,6 +15,33 @@ import org.apache.avro.io.BinaryDecoder;
  */
 public abstract class AvroStructureReader
 {
+    /*
+    /**********************************************************************
+    /* Reader API
+    /**********************************************************************
+     */
+
+    /**
+     * Method for creating actual instance to use for reading (initial
+     * instance constructed is so-called blue print).
+     */
+    public abstract AvroStructureReader newReader(BinaryDecoder decoder, AvroParserImpl parser);
+
+    /**
+     * Method for reading next token; returns null if reader can not read
+     * more entries.
+     */
+    public abstract JsonToken nextToken() throws IOException;
+    
+    /*
+    /**********************************************************************
+    /* Factory methods
+    /**********************************************************************
+     */
+    
+    /**
+     * Method for creating a reader instance for specified type.
+     */
     public static AvroStructureReader createReader(Schema schema)
     {
         switch (schema.getType()) {
@@ -62,10 +93,10 @@ public abstract class AvroStructureReader
     private static AvroStructureReader createUnionReader(Schema schema)
     {
         final List<Schema> types = schema.getTypes();
-        AvroFieldReader[] typeReaders = new AvroFieldReader[types.size()];
+        AvroStructureReader[] typeReaders = new AvroStructureReader[types.size()];
         int i = 0;
         for (Schema type : types) {
-            typeReaders[i++] = createFieldReader(type);
+            typeReaders[i++] = createReader(type);
         }
         return new UnionReader(typeReaders);
     }
@@ -82,8 +113,6 @@ public abstract class AvroStructureReader
         }
         return new AvroFieldReader(createReader(type));
     }
-    
-    public abstract AvroStructureReader newReader(BinaryDecoder decoder, AvroParserImpl parser);
 
     /*
     /**********************************************************************
@@ -91,11 +120,30 @@ public abstract class AvroStructureReader
     /**********************************************************************
      */
 
-    private final static class ScalarArrayReader extends AvroStructureReader
+    private abstract static class ArrayReader extends AvroStructureReader
+    {
+        protected final static int STATE_START = 0;
+        protected final static int STATE_ELEMENTS = 1;
+        protected final static int STATE_END = 2;
+        protected final static int STATE_DONE = 3;
+
+        protected final BinaryDecoder _decoder;
+        protected final AvroParserImpl _parser;
+
+        protected int _state;
+        protected long _index;
+        protected long _count;
+
+        protected ArrayReader(BinaryDecoder decoder, AvroParserImpl parser)
+        {
+            _decoder = decoder;
+            _parser = parser;
+        }
+    }
+    
+    private final static class ScalarArrayReader extends ArrayReader
     {
         private final AvroScalarReader _elementReader;
-        private final BinaryDecoder _decoder;
-        private final AvroParserImpl _parser;
         
         public ScalarArrayReader(AvroScalarReader reader) {
             this(reader, null, null);
@@ -103,23 +151,47 @@ public abstract class AvroStructureReader
 
         private ScalarArrayReader(AvroScalarReader reader, 
                 BinaryDecoder decoder, AvroParserImpl parser) {
+            super(decoder, parser);
             _elementReader = reader;
-            _decoder = decoder;
-            _parser = parser;
         }
         
         @Override
         public ScalarArrayReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new ScalarArrayReader(_elementReader, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+            switch (_state) {
+            case STATE_START:
+                _count = _decoder.readArrayStart();
+                _state = (_count > 0) ? STATE_ELEMENTS : STATE_END;
+                return JsonToken.START_ARRAY;
+            case STATE_ELEMENTS:
+                break;
+            case STATE_END:
+                _state = STATE_DONE;
+                return JsonToken.END_ARRAY;
+            case STATE_DONE:
+                return null;
+            }
+            if (_index >= _count) { // need more data
+                _count = _decoder.arrayNext();
+                // all traversed?
+                if (_count <= 0L) {
+                    _state = STATE_DONE;
+                    return JsonToken.END_ARRAY;
+                }
+            }
+            ++_index;
+            return _elementReader.readValue(_parser, _decoder);
+        }        
     }
 
-    private final static class NonScalarArrayReader extends AvroStructureReader
+    private final static class NonScalarArrayReader extends ArrayReader
     {
         private final AvroStructureReader _elementReader;
-        private final BinaryDecoder _decoder;
-        private final AvroParserImpl _parser;
         
         public NonScalarArrayReader(AvroStructureReader reader) {
             this(reader, null, null);
@@ -127,16 +199,43 @@ public abstract class AvroStructureReader
 
         private NonScalarArrayReader(AvroStructureReader reader, 
                 BinaryDecoder decoder, AvroParserImpl parser) {
+            super(decoder, parser);
             _elementReader = reader;
-            _decoder = decoder;
-            _parser = parser;
         }
         
         @Override
         public NonScalarArrayReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new NonScalarArrayReader(_elementReader, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+            switch (_state) {
+            case STATE_START:
+                _count = _decoder.readArrayStart();
+                _state = (_count > 0) ? STATE_ELEMENTS : STATE_END;
+                return JsonToken.START_ARRAY;
+            case STATE_ELEMENTS:
+                break;
+            case STATE_END:
+                _state = STATE_DONE;
+                return JsonToken.END_ARRAY;
+            case STATE_DONE:
+                return null;
+            }
+            if (_index >= _count) { // need more data
+                _count = _decoder.arrayNext();
+                // all traversed?
+                if (_count <= 0L) {
+                    _state = STATE_DONE;
+                    return JsonToken.END_ARRAY;
+                }
+            }
+            ++_index;
+            _parser.setAvroContext(_elementReader);
+            return _elementReader.nextToken();
+        }        
     }
     
     /*
@@ -166,7 +265,11 @@ public abstract class AvroStructureReader
         public ScalarMapReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new ScalarMapReader(_valueReader, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+        }        
     }
 
     private final static class NonScalarMapReader extends AvroStructureReader
@@ -190,7 +293,11 @@ public abstract class AvroStructureReader
         public NonScalarMapReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new NonScalarMapReader(_valueReader, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+        }        
     }
     
     /*
@@ -220,26 +327,36 @@ public abstract class AvroStructureReader
         public RecordReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new RecordReader(_fieldReaders, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+        }        
     }
     
     /*
     /**********************************************************************
-    /* Reader implementation for Avro unions
+    /* Reader implementation for Avro unions with non-scalar types
     /**********************************************************************
      */
 
+    /**
+     * Reader used in cases where union contains at least one non-scalar
+     * type.
+     */
     private final static class UnionReader extends AvroStructureReader
     {
-        private final AvroFieldReader[] _memberReaders;
+        private final AvroStructureReader[] _memberReaders;
         private final BinaryDecoder _decoder;
         private final AvroParserImpl _parser;
+
+        private AvroStructureReader _currentReader;
         
-        public UnionReader(AvroFieldReader[] memberReaders) {
+        public UnionReader(AvroStructureReader[] memberReaders) {
             this(memberReaders, null, null);
         }
 
-        private UnionReader(AvroFieldReader[] memberReaders,
+        private UnionReader(AvroStructureReader[] memberReaders,
                 BinaryDecoder decoder, AvroParserImpl parser) {
             _memberReaders = memberReaders;
             _decoder = decoder;
@@ -250,7 +367,22 @@ public abstract class AvroStructureReader
         public UnionReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new UnionReader(_memberReaders, decoder, parser);
         }
-        
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+            if (_currentReader == null) {
+                int index = _decoder.readIndex();
+                if (index < 0 || index >= _memberReaders.length) {
+                    throw new JsonParseException("Invalid index ("+index+"); union only has "
+                            +_memberReaders.length+" types",
+                            _parser.getCurrentLocation());
+                }
+                // important: remember to create new instance
+                _currentReader = _memberReaders[index].newReader(_decoder, _parser);
+            }
+            return _currentReader.nextToken();
+        }
     }
 
     private final static class ScalarDecoderWrapper extends AvroStructureReader
@@ -258,6 +390,8 @@ public abstract class AvroStructureReader
         private final AvroScalarReader _wrappedReader;
         private final BinaryDecoder _decoder;
         private final AvroParserImpl _parser;
+
+        protected boolean _completed;
         
         public ScalarDecoderWrapper(AvroScalarReader wrappedReader) {
             this(wrappedReader, null, null);
@@ -269,10 +403,21 @@ public abstract class AvroStructureReader
             _decoder = decoder;
             _parser = parser;
         }
-        
+
         @Override
         public ScalarDecoderWrapper newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new ScalarDecoderWrapper(_wrappedReader, decoder, parser);
         }
+
+        @Override
+        public JsonToken nextToken() throws IOException
+        {
+            if (_completed) {
+                return null;
+            }
+            _completed = true;
+            return _wrappedReader.readValue(_parser, _decoder);
+        }
+    
     }
 }

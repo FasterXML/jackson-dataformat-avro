@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
@@ -34,6 +33,7 @@ abstract class ReadContextBase
     protected ReadContextBase createContext(Schema schema)
         throws IOException
     {
+        /*
         switch (schema.getType()) {
         case ARRAY:
             return new ArrayContext(this, _parser, _decoder, schema);
@@ -66,8 +66,9 @@ abstract class ReadContextBase
         case UNION:
             break;
         }
+        */
         throw new IllegalStateException("Unrecognized Avro Schema type: "+schema.getType());
-    }    
+    } 
 
     protected abstract boolean isStructured();
 
