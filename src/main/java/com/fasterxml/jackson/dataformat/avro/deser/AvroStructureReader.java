@@ -74,9 +74,9 @@ public abstract class AvroStructureReader
         Schema elementType = schema.getElementType();
         AvroScalarReader dec = AvroScalarReader.createDecoder(elementType);
         if (dec != null) {
-            return new ScalarMapReader(dec);
+            return new MapReader(dec);
         }
-        return new NonScalarMapReader(createReader(elementType));
+        return new MapReader(createReader(elementType));
     }
 
     private static AvroStructureReader createRecordReader(Schema schema)
@@ -120,7 +120,7 @@ public abstract class AvroStructureReader
     /**********************************************************************
      */
 
-    private abstract static class ArrayReader extends AvroStructureReader
+    private abstract static class ArrayReaderBase extends AvroStructureReader
     {
         protected final static int STATE_START = 0;
         protected final static int STATE_ELEMENTS = 1;
@@ -134,14 +134,14 @@ public abstract class AvroStructureReader
         protected long _index;
         protected long _count;
 
-        protected ArrayReader(BinaryDecoder decoder, AvroParserImpl parser)
+        protected ArrayReaderBase(BinaryDecoder decoder, AvroParserImpl parser)
         {
             _decoder = decoder;
             _parser = parser;
         }
     }
     
-    private final static class ScalarArrayReader extends ArrayReader
+    private final static class ScalarArrayReader extends ArrayReaderBase
     {
         private final AvroScalarReader _elementReader;
         
@@ -189,7 +189,7 @@ public abstract class AvroStructureReader
         }        
     }
 
-    private final static class NonScalarArrayReader extends ArrayReader
+    private final static class NonScalarArrayReader extends ArrayReaderBase
     {
         private final AvroStructureReader _elementReader;
         
@@ -233,8 +233,9 @@ public abstract class AvroStructureReader
                 }
             }
             ++_index;
-            _parser.setAvroContext(_elementReader);
-            return _elementReader.nextToken();
+            AvroStructureReader r = _elementReader.newReader(_decoder, _parser);
+            _parser.setAvroContext(r);
+            return r.nextToken();
         }        
     }
     
@@ -244,59 +245,81 @@ public abstract class AvroStructureReader
     /**********************************************************************
      */
 
-    private final static class ScalarMapReader extends AvroStructureReader
+    private final static class MapReader extends AvroStructureReader
     {
-        private final AvroScalarReader _valueReader;
-        private final BinaryDecoder _decoder;
-        private final AvroParserImpl _parser;
+        protected final static int STATE_START = 0;
+        protected final static int STATE_NAME = 1;
+        protected final static int STATE_VALUE = 2;
+        protected final static int STATE_END = 3;
+        protected final static int STATE_DONE = 4;
+
+        private final AvroScalarReader _scalarReader;
+        private final AvroStructureReader _structureReader;
+        protected final BinaryDecoder _decoder;
+        protected final AvroParserImpl _parser;
+
+        private String _currentName;
         
-        public ScalarMapReader(AvroScalarReader reader) {
-            this(reader, null, null);
+        protected int _state;
+        protected long _index;
+        protected long _count;
+        
+        public MapReader(AvroScalarReader reader) {
+            this(reader, null, null, null);
         }
 
-        private ScalarMapReader(AvroScalarReader reader, 
+        public MapReader(AvroStructureReader reader) {
+            this(null, reader, null, null);
+        }
+        
+        private MapReader(AvroScalarReader scalarReader,
+                AvroStructureReader structReader,
                 BinaryDecoder decoder, AvroParserImpl parser) {
-            _valueReader = reader;
+            _scalarReader = scalarReader;
+            _structureReader = structReader;
             _decoder = decoder;
             _parser = parser;
         }
         
         @Override
-        public ScalarMapReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
+        public MapReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
             return new ScalarMapReader(_valueReader, decoder, parser);
         }
 
         @Override
         public JsonToken nextToken() throws IOException
         {
-        }        
-    }
-
-    private final static class NonScalarMapReader extends AvroStructureReader
-    {
-        private final AvroStructureReader _valueReader;
-        private final BinaryDecoder _decoder;
-        private final AvroParserImpl _parser;
-        
-        public NonScalarMapReader(AvroStructureReader reader) {
-            this(reader, null, null);
-        }
-
-        private NonScalarMapReader(AvroStructureReader reader, 
-                BinaryDecoder decoder, AvroParserImpl parser) {
-            _valueReader = reader;
-            _decoder = decoder;
-            _parser = parser;
-        }
-        
-        @Override
-        public NonScalarMapReader newReader(BinaryDecoder decoder, AvroParserImpl parser) {
-            return new NonScalarMapReader(_valueReader, decoder, parser);
-        }
-
-        @Override
-        public JsonToken nextToken() throws IOException
-        {
+            switch (_state) {
+            case STATE_START:
+                _count = _decoder.readArrayStart();
+                _state = (_count > 0) ? STATE_NAME : STATE_END;
+                return JsonToken.START_OBJECT;
+            case STATE_NAME:
+                if (_index >= _count) { // need more data
+                    _count = _decoder.arrayNext();
+                    // all traversed?
+                    if (_count <= 0L) {
+                        _state = STATE_DONE;
+                        return JsonToken.END_OBJECT;
+                    }
+                }
+                _currentName = _decoder.readString();
+                return JsonToken.FIELD_NAME;
+            case STATE_VALUE:
+                break;
+            case STATE_END:
+                _state = STATE_DONE;
+                return JsonToken.END_OBJECT;
+            case STATE_DONE:
+                return null;
+            }
+            ++_index;
+            if (_scalarReader != null) {
+                return _scalarReader.readValue(_parser, _decoder);
+            }
+            AvroStructureReader r = _structureReader.newReader(_decoder, _parser);
+            _parser.setAvroContext(r);
+            return r.nextToken();
         }        
     }
     
