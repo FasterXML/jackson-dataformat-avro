@@ -9,18 +9,18 @@ import com.fasterxml.jackson.core.JsonToken;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryDecoder;
 
-public abstract class AvroScalarDecoder
+public abstract class AvroScalarReader
 {
-    protected final static AvroScalarDecoder DECODER_BOOLEAN = new BooleanReader();
-    protected final static AvroScalarDecoder DECODER_BYTES = new BytesReader();
-    protected final static AvroScalarDecoder DECODER_DOUBLE = new DoubleReader();
-    protected final static AvroScalarDecoder DECODER_FLOAT = new FloatReader();
-    protected final static AvroScalarDecoder DECODER_INT = new IntReader();
-    protected final static AvroScalarDecoder DECODER_LONG = new LongReader();
-    protected final static AvroScalarDecoder DECODER_NULL = new NullReader();
-    protected final static AvroScalarDecoder DECODER_STRING = new StringReader();
+    protected final static AvroScalarReader DECODER_BOOLEAN = new BooleanReader();
+    protected final static AvroScalarReader DECODER_BYTES = new BytesReader();
+    protected final static AvroScalarReader DECODER_DOUBLE = new DoubleReader();
+    protected final static AvroScalarReader DECODER_FLOAT = new FloatReader();
+    protected final static AvroScalarReader DECODER_INT = new IntReader();
+    protected final static AvroScalarReader DECODER_LONG = new LongReader();
+    protected final static AvroScalarReader DECODER_NULL = new NullReader();
+    protected final static AvroScalarReader DECODER_STRING = new StringReader();
 
-    public static AvroScalarDecoder createDecoder(Schema type)
+    public static AvroScalarReader createDecoder(Schema type)
     {
         switch (type.getType()) {
         case BOOLEAN:
@@ -52,12 +52,12 @@ public abstract class AvroScalarDecoder
                 List<Schema> types = type.getTypes();
                 if (types.size() == 2) {
                     if (types.get(0).getType() == Schema.Type.NULL) {
-                        AvroScalarDecoder dec = createDecoder(types.get(1));
+                        AvroScalarReader dec = createDecoder(types.get(1));
                         if (dec != null) {
                             return new NullableScalarDecoder(0, dec);
                         }
                     } else if (types.get(1).getType() == Schema.Type.NULL) {
-                        AvroScalarDecoder dec = createDecoder(types.get(0));
+                        AvroScalarReader dec = createDecoder(types.get(0));
                         if (dec != null) {
                             return new NullableScalarDecoder(1, dec);
                         }
@@ -82,18 +82,18 @@ public abstract class AvroScalarDecoder
 
     /*
     /**********************************************************************
-    /* Simple leaf-value decoder implementations
+    /* Scalar lead value decoder implementations
     /**********************************************************************
      */
 
     protected final static class NullableScalarDecoder
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         protected final int _nullIndex;
 
-        public final AvroScalarDecoder _nonNullDecoder;
+        public final AvroScalarReader _nonNullDecoder;
 
-        public NullableScalarDecoder(int nullIndex, AvroScalarDecoder nonNullDecoder)
+        public NullableScalarDecoder(int nullIndex, AvroScalarReader nonNullDecoder)
         {
             _nullIndex = nullIndex;
             _nonNullDecoder = nonNullDecoder;            
@@ -112,7 +112,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class BooleanReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override
         protected JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
@@ -122,7 +122,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class BytesReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
             throws IOException
@@ -134,7 +134,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class DoubleReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
             throws IOException
@@ -144,7 +144,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class FloatReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
                 throws IOException
@@ -154,7 +154,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class IntReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
@@ -165,7 +165,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class LongReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
@@ -176,7 +176,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class NullReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) {
             return JsonToken.VALUE_NULL;
@@ -184,7 +184,7 @@ public abstract class AvroScalarDecoder
     }
     
     protected final static class StringReader
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         @Override
         public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
@@ -195,7 +195,7 @@ public abstract class AvroScalarDecoder
     }
 
     protected final static class EnumDecoder
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         protected final String[] _values;
         
@@ -218,7 +218,7 @@ public abstract class AvroScalarDecoder
     }
 
     protected final static class FixedDecoder
-        extends AvroScalarDecoder
+        extends AvroScalarReader
     {
         protected final int _size;
         
