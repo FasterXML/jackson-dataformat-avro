@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.json.JsonReadContext;
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
-import com.fasterxml.jackson.dataformat.avro.deser.EmptyContext;
+import com.fasterxml.jackson.dataformat.avro.deser.MissingReader;
 
 /**
  * {@link JsonParser} implementation for decoding Avro content and
@@ -100,7 +100,7 @@ public abstract class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = in;
-        _avroContext = EmptyContext.instance;
+        _avroContext = MissingReader.instance;
     }
 
     protected AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
@@ -111,7 +111,7 @@ public abstract class AvroParser extends ParserBase
         _objectCodec = codec;
         _avroFeatures = avroFeatures;
         _input = null;
-        _avroContext = EmptyContext.instance;
+        _avroContext = MissingReader.instance;
     }
     
     @Override

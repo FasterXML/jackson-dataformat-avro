@@ -14,9 +14,9 @@ public abstract class AvroReadContext extends JsonStreamContext
     protected final AvroReadContext _parent;
 
     /*
-    /**********************************************************
+    /**********************************************************************
     /* Instance construction
-    /**********************************************************
+    /**********************************************************************
      */
 
     public AvroReadContext(AvroReadContext parent)
@@ -28,9 +28,9 @@ public abstract class AvroReadContext extends JsonStreamContext
     public abstract JsonToken nextToken() throws IOException;
     
     /*
-    /**********************************************************
+    /**********************************************************************
     /* Accessors
-    /**********************************************************
+    /**********************************************************************
      */
 
     @Override
@@ -40,8 +40,22 @@ public abstract class AvroReadContext extends JsonStreamContext
     public final AvroReadContext getParent() { return _parent; }
     
     protected abstract void appendDesc(StringBuilder sb);
+
+    /*
+    /**********************************************************************
+    /* Helper methods
+    /**********************************************************************
+     */
+
+    protected void _reportError() {
+        throw new IllegalStateException("Can not read Avro input without specifying Schema");
+    }
     
-    // // // Overridden standard methods
+    /*
+    /**********************************************************************
+    /* Overridden standard methods
+    /**********************************************************************
+     */
     
     /**
      * Overridden to provide developer writeable "JsonPath" representation

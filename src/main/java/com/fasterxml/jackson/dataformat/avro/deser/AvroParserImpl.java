@@ -86,19 +86,7 @@ if (t == JsonToken.VALUE_STRING) System.err.println(" text: "+this._textValue);
     @Override
     protected void _initSchema(AvroSchema schema)
     {
-        /* Two-phase construction: first, create root context so
-         * that context stack looks same as with JSON.
-         * And then use the contained context as the active one,
-         * to handle actual parsing correctly and without having
-         * to make root context stateful.
-         */
-        RootContext ctxt;
-        try {
-            ctxt = new RootContext(this, _decoder, schema.getAvroSchema());
-        } catch (IOException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-        _avroContext = ctxt.getActualContext();
+        _avroContext = new RootReader( schema.getReader(_input, this));
     }
     
     /*

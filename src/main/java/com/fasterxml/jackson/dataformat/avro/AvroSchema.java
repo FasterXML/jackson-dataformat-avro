@@ -56,6 +56,6 @@ public class AvroSchema implements FormatSchema
             r = AvroStructureReader.createReader(_avroSchema);
             _reader.set(r);
         }
-        return r.newReader(decoder(in), parser);
+        return r.newReader(parser, decoder(in));
     }
 }

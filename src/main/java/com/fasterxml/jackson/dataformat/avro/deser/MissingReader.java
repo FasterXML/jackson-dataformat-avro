@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.JsonToken;
 
 import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
-public class EmptyContext extends AvroReadContext
+public class MissingReader extends AvroReadContext
 {
-    public final static EmptyContext instance = new EmptyContext();
+    public final static MissingReader instance = new MissingReader();
     
-    public EmptyContext() {
+    public MissingReader() {
         super(null);
         _type = TYPE_ROOT;
     }
@@ -22,10 +22,6 @@ public class EmptyContext extends AvroReadContext
     @Override
     public void appendDesc(StringBuilder sb) {
         sb.append("?");
-    }
-
-    protected void _reportError() {
-        throw new IllegalStateException("Can not read Avro input without specifying Schema");
     }
 }
 
