@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.core.FormatSchema;
 import com.fasterxml.jackson.dataformat.avro.deser.AvroParserImpl;
+import com.fasterxml.jackson.dataformat.avro.deser.AvroReaderFactory;
 import com.fasterxml.jackson.dataformat.avro.deser.AvroStructureReader;
 
 import org.apache.avro.Schema;
@@ -53,7 +54,8 @@ public class AvroSchema implements FormatSchema
     {
         AvroStructureReader r = _reader.get();
         if (r == null) {
-            r = AvroStructureReader.createReader(_avroSchema);
+            AvroReaderFactory f = new AvroReaderFactory();
+            r = f.createReader(_avroSchema);
             _reader.set(r);
         }
         return r.newReader(parser, decoder(in));

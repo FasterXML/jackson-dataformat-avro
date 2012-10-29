@@ -12,66 +12,6 @@ import org.apache.avro.io.BinaryDecoder;
 
 public abstract class AvroScalarReader
 {
-    protected final static AvroScalarReader DECODER_BOOLEAN = new BooleanReader();
-    protected final static AvroScalarReader DECODER_BYTES = new BytesReader();
-    protected final static AvroScalarReader DECODER_DOUBLE = new DoubleReader();
-    protected final static AvroScalarReader DECODER_FLOAT = new FloatReader();
-    protected final static AvroScalarReader DECODER_INT = new IntReader();
-    protected final static AvroScalarReader DECODER_LONG = new LongReader();
-    protected final static AvroScalarReader DECODER_NULL = new NullReader();
-    protected final static AvroScalarReader DECODER_STRING = new StringReader();
-
-    public static AvroScalarReader createDecoder(Schema type)
-    {
-        switch (type.getType()) {
-        case BOOLEAN:
-            return DECODER_BOOLEAN;
-        case BYTES: 
-            return DECODER_BYTES;
-        case DOUBLE: 
-            return DECODER_DOUBLE;
-        case ENUM: 
-            return new EnumDecoder(type);
-        case FIXED: 
-            return new FixedDecoder(type);
-        case FLOAT: 
-            return DECODER_FLOAT;
-        case INT:
-            return DECODER_INT;
-        case LONG: 
-            return DECODER_LONG;
-        case NULL: 
-            return DECODER_NULL;
-        case STRING: 
-            return DECODER_STRING;
-        case UNION:
-            /* Union is a "scalar union" if all the alternative types
-             * are scalar. One common type is that of "nullable" one,
-             * but general handling should work just fine.
-             */
-            List<Schema> types = type.getTypes();
-            {
-                AvroScalarReader[] readers = new AvroScalarReader[types.size()];
-                int i = 0;
-                for (Schema schema : types) {
-                    AvroScalarReader reader = createDecoder(schema);
-                    if (reader == null) { // non-scalar; no go
-                        return null;
-                    }
-                    readers[i++] = reader;
-                }
-                return new ScalarUnionReader(readers);
-            }
-        case ARRAY: // ok to call just can't handle
-        case MAP:
-        case RECORD:
-            return null;
-        }
-        // but others are not recognized
-        throw new IllegalStateException("Unrecognized Avro Schema type: "+type.getType());
-
-    }
-
     protected abstract JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
         throws IOException;
 
