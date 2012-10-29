@@ -6,6 +6,7 @@ import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 /**
  * Reader used in cases where union contains at least one non-scalar
@@ -20,21 +21,23 @@ final class UnionReader extends AvroStructureReader
     private AvroStructureReader _currentReader;
     
     public UnionReader(AvroStructureReader[] memberReaders) {
-        this(memberReaders, null, null);
+        this(null, memberReaders, null, null);
     }
 
-    private UnionReader(AvroStructureReader[] memberReaders,
+    private UnionReader(AvroReadContext parent,
+            AvroStructureReader[] memberReaders,
             BinaryDecoder decoder, AvroParserImpl parser)
     {
-        super(null, TYPE_ROOT);
+        super(parent, TYPE_ROOT);
         _memberReaders = memberReaders;
         _decoder = decoder;
         _parser = parser;
     }
     
     @Override
-    public UnionReader newReader(AvroParserImpl parser, BinaryDecoder decoder) {
-        return new UnionReader(_memberReaders, decoder, parser);
+    public UnionReader newReader(AvroReadContext parent,
+            AvroParserImpl parser, BinaryDecoder decoder) {
+        return new UnionReader(parent, _memberReaders, decoder, parser);
     }
 
     @Override
@@ -48,7 +51,8 @@ final class UnionReader extends AvroStructureReader
                         _parser.getCurrentLocation());
             }
             // important: remember to create new instance
-            _currentReader = _memberReaders[index].newReader(_parser, _decoder);
+            // also: must pass our parent (not this instance)
+            _currentReader = _memberReaders[index].newReader(_parent, _parser, _decoder);
         }
         return _currentReader.nextToken();
     }

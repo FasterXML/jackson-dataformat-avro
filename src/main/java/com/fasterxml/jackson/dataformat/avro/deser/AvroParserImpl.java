@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.DecoderFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
@@ -31,7 +30,7 @@ public class AvroParserImpl extends AvroParser
             ObjectCodec codec, InputStream in)
     {
         super(ctxt, parserFeatures, avroFeatures, codec, in);
-        _decoder = DecoderFactory.get().binaryDecoder(in, null);
+        _decoder = AvroSchema.decoderFactory().binaryDecoder(in, null);
     }
 
     public AvroParserImpl(IOContext ctxt, int parserFeatures, int avroFeatures,
@@ -40,7 +39,7 @@ public class AvroParserImpl extends AvroParser
     {
         super(ctxt, parserFeatures, avroFeatures, codec,
                 data, offset, len);
-        _decoder = DecoderFactory.get().binaryDecoder(data, offset, len, null);
+        _decoder = AvroSchema.decoderFactory().binaryDecoder(data, offset, len, null);
     }
 
     /*
@@ -57,36 +56,20 @@ public class AvroParserImpl extends AvroParser
             return null;
         }
         JsonToken t = _avroContext.nextToken();
+        _currToken = t;
         /*
 System.err.println("T = "+t+" (from "+_avroContext.getClass().getName()+")");
 System.err.println(" name = "+this.getCurrentName());
 if (t == JsonToken.VALUE_STRING) System.err.println(" text: "+this._textValue);
 */
-        if (t != null) { // usual quick case
-            _currToken = t;
-            return t;
-        }
-        // Otherwise, maybe context was closed
-        while (true) {
-            AvroReadContext ctxt = _avroContext.getParent();
-            if (ctxt == null)  { // root context, end!
-                _currToken = null;
-                close();
-                return null;
-            }
-            _avroContext = ctxt;
-            t = ctxt.nextToken();
-            if (t != null) {
-                _currToken = t;
-                return t;
-            }
-        }
+        return t;
     }
     
     @Override
-    protected void _initSchema(AvroSchema schema)
-    {
-        _avroContext = new RootReader( schema.getReader(_input, this));
+    protected void _initSchema(AvroSchema schema) {
+        AvroStructureReader reader = schema.getReader();
+        RootReader root = new RootReader();
+        _avroContext = reader.newReader(root, this, _decoder);
     }
     
     /*

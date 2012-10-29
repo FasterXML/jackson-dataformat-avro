@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 final class ScalarReaderWrapper extends AvroStructureReader
 {
@@ -27,7 +28,8 @@ final class ScalarReaderWrapper extends AvroStructureReader
     }
 
     @Override
-    public ScalarReaderWrapper newReader(AvroParserImpl parser, BinaryDecoder decoder) {
+    public ScalarReaderWrapper newReader(AvroReadContext parent,
+            AvroParserImpl parser, BinaryDecoder decoder) {
         return new ScalarReaderWrapper(_wrappedReader, parser, decoder);
     }
 

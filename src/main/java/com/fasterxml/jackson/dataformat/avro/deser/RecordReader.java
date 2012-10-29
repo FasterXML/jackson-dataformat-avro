@@ -41,9 +41,13 @@ final class RecordReader extends AvroStructureReader
     }
     
     @Override
-    public RecordReader newReader(AvroParserImpl parser, BinaryDecoder decoder) {
-        return new RecordReader(_parent, _fieldReaders, decoder, parser);
+    public RecordReader newReader(AvroReadContext parent,
+            AvroParserImpl parser, BinaryDecoder decoder) {
+        return new RecordReader(parent, _fieldReaders, decoder, parser);
     }
+
+    @Override
+    public String getCurrentName() { return _currentName; }
 
     @Override
     public JsonToken nextToken() throws IOException
@@ -56,6 +60,7 @@ final class RecordReader extends AvroStructureReader
         case STATE_NAME:
             if (_index < _count) {
                 _currentName = _fieldReaders[_index].getName();
+                _state = STATE_VALUE;
                 return JsonToken.FIELD_NAME;
             }
             // done; fall through
@@ -72,7 +77,7 @@ final class RecordReader extends AvroStructureReader
         _state = STATE_NAME;
         AvroFieldWrapper field = _fieldReaders[_index];
         ++_index;
-        return field.readValue(_parser, _decoder);
+        return field.readValue(this, _parser, _decoder);
     }        
 
     @Override

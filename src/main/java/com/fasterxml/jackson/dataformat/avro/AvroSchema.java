@@ -4,12 +4,10 @@ import java.io.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.core.FormatSchema;
-import com.fasterxml.jackson.dataformat.avro.deser.AvroParserImpl;
 import com.fasterxml.jackson.dataformat.avro.deser.AvroReaderFactory;
 import com.fasterxml.jackson.dataformat.avro.deser.AvroStructureReader;
 
 import org.apache.avro.Schema;
-import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
@@ -42,15 +40,15 @@ public class AvroSchema implements FormatSchema
 
     public Schema getAvroSchema() { return _avroSchema; }
 
-    public BinaryDecoder decoder(InputStream in) {
-         return DECODER_FACTORY.binaryDecoder(in, null);
+    public static DecoderFactory decoderFactory() {
+        return DECODER_FACTORY;
     }
-
+    
     public BinaryEncoder encoder(OutputStream out) {
         return ENCODER_FACTORY.binaryEncoder(out, null);
    }
 
-    public AvroStructureReader getReader(InputStream in, AvroParserImpl parser)
+    public AvroStructureReader getReader()
     {
         AvroStructureReader r = _reader.get();
         if (r == null) {
@@ -58,6 +56,6 @@ public class AvroSchema implements FormatSchema
             r = f.createReader(_avroSchema);
             _reader.set(r);
         }
-        return r.newReader(parser, decoder(in));
+        return r;
     }
 }

@@ -46,10 +46,14 @@ public final class MapReader extends AvroStructureReader
     }
     
     @Override
-    public MapReader newReader(AvroParserImpl parser, BinaryDecoder decoder) {
-        return new MapReader(_parent, _scalarReader, _structureReader, decoder, parser);
+    public MapReader newReader(AvroReadContext parent,
+            AvroParserImpl parser, BinaryDecoder decoder) {
+        return new MapReader(parent, _scalarReader, _structureReader, decoder, parser);
     }
 
+    @Override
+    public String getCurrentName() { return _currentName; }
+    
     @Override
     public JsonToken nextToken() throws IOException
     {
@@ -68,6 +72,7 @@ public final class MapReader extends AvroStructureReader
             _count = _decoder.arrayNext();
             // more stuff?
             if (_count > 0L) {
+                _index = 0;
                 _currentName = _decoder.readString();
                 return JsonToken.FIELD_NAME;
             }
@@ -87,7 +92,7 @@ public final class MapReader extends AvroStructureReader
         if (_scalarReader != null) {
             return _scalarReader.readValue(_parser, _decoder);
         }
-        AvroStructureReader r = _structureReader.newReader(_parser, _decoder);
+        AvroStructureReader r = _structureReader.newReader(this, _parser, _decoder);
         _parser.setAvroContext(r);
         return r.nextToken();
     }        

@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 public final class AvroFieldWrapper
 {
@@ -26,14 +27,14 @@ public final class AvroFieldWrapper
 
     public String getName() { return _name; }
 
-    public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
+    public JsonToken readValue(AvroReadContext parent,
+            AvroParserImpl parser, BinaryDecoder decoder)
         throws IOException
     {
         if (_scalarReader != null) {
             return _scalarReader.readValue(parser, decoder);
         }
-        AvroStructureReader r = _structureReader.newReader(parser, decoder);
-        parser.setAvroContext(r);
-        return r.nextToken();
+        return  _structureReader.newReader(parent, parser, decoder)
+                .nextToken();
     }
 }

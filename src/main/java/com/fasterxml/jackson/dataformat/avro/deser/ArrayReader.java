@@ -68,16 +68,16 @@ abstract class ArrayReader extends AvroStructureReader
             this(null, reader, null, null);
         }
 
-        private Scalar(AvroReadContext parent,
-                AvroScalarReader reader, 
+        private Scalar(AvroReadContext parent, AvroScalarReader reader, 
                 AvroParserImpl parser, BinaryDecoder decoder) {
             super(parent, parser, decoder);
             _elementReader = reader;
         }
         
         @Override
-        public Scalar newReader(AvroParserImpl parser, BinaryDecoder decoder) {
-            return new Scalar(_parent, _elementReader, parser, decoder);
+        public Scalar newReader(AvroReadContext parent,
+                AvroParserImpl parser, BinaryDecoder decoder) {
+            return new Scalar(parent, _elementReader, parser, decoder);
         }
 
         @Override
@@ -90,7 +90,13 @@ abstract class ArrayReader extends AvroStructureReader
                 _state = (_count > 0) ? STATE_ELEMENTS : STATE_END;
                 return JsonToken.START_ARRAY;
             case STATE_ELEMENTS:
-                break;
+                if (_index < _count) {
+                    break;
+                }
+                if ((_count = _decoder.arrayNext()) >= 0L) { // got more data
+                    _index = 0L;
+                }
+                // otherwise, we are done: fall through
             case STATE_END:
                 _state = STATE_DONE;
                 _parser.setAvroContext(getParent());
@@ -100,14 +106,8 @@ abstract class ArrayReader extends AvroStructureReader
                 throwIllegalState(_state);
                 return null;
             }
-            if (_index >= _count) { // need more data
-                _count = _decoder.arrayNext();
-                // all traversed?
-                if (_count <= 0L) {
-                    _state = STATE_DONE;
-                    return JsonToken.END_ARRAY;
-                }
-            }
+
+            // all good, just need to read the element value:
             ++_index;
             return _elementReader.readValue(_parser, _decoder);
         }
@@ -129,8 +129,9 @@ abstract class ArrayReader extends AvroStructureReader
         }
         
         @Override
-        public NonScalar newReader(AvroParserImpl parser, BinaryDecoder decoder) {
-            return new NonScalar(_parent, _elementReader, parser, decoder);
+        public NonScalar newReader(AvroReadContext parent,
+                AvroParserImpl parser, BinaryDecoder decoder) {
+            return new NonScalar(parent, _elementReader, parser, decoder);
         }
 
         @Override
@@ -143,7 +144,13 @@ abstract class ArrayReader extends AvroStructureReader
                 _state = (_count > 0) ? STATE_ELEMENTS : STATE_END;
                 return JsonToken.START_ARRAY;
             case STATE_ELEMENTS:
-                break;
+                if (_index < _count) {
+                    break;
+                }
+                if ((_count = _decoder.arrayNext()) >= 0L) { // got more data
+                    _index = 0L;
+                }
+                // otherwise, we are done: fall through
             case STATE_END:
                 _state = STATE_DONE;
                 _parser.setAvroContext(getParent());
@@ -152,16 +159,8 @@ abstract class ArrayReader extends AvroStructureReader
             default:
                 throwIllegalState(_state);
             }
-            if (_index >= _count) { // need more data
-                _count = _decoder.arrayNext();
-                // all traversed?
-                if (_count <= 0L) {
-                    _state = STATE_DONE;
-                    return JsonToken.END_ARRAY;
-                }
-            }
             ++_index;
-            AvroStructureReader r = _elementReader.newReader(_parser, _decoder);
+            AvroStructureReader r = _elementReader.newReader(this, _parser, _decoder);
             _parser.setAvroContext(r);
             return r.nextToken();
         }
