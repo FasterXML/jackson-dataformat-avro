@@ -14,9 +14,9 @@ public class SimpleParseTest extends AvroTestBase
         empl.name = "Bob";
         empl.age = 39;
         empl.emails = new String[] { "bob@aol.com", "Bob@gmail.com" };
-        
-        // !!! TODO: handle "union" type to allow nulls
-//        empl.boss = boss;
+
+        // NOTE: currently problematic (gives us a union...)
+        empl.boss = boss;
 
         byte[] avro = toAvro(empl);
 

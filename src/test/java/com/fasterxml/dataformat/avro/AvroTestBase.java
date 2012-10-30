@@ -40,9 +40,14 @@ public abstract class AvroTestBase extends TestCase
     protected AvroSchema getEmployeeSchema()
     {
         if (_employeeSchema == null) {
-            _employeeSchema = new AvroSchema(new Schema.Parser().setValidate(true).parse(EMPLOYEE_SCHEMA_JSON));
+            _employeeSchema = parseSchema(EMPLOYEE_SCHEMA_JSON);
         }
         return _employeeSchema;
+    }
+
+    protected AvroSchema parseSchema(String schemaJson)
+    {
+        return new AvroSchema(new Schema.Parser().setValidate(true).parse(schemaJson));        
     }
     
     protected ObjectMapper getMapper() {
