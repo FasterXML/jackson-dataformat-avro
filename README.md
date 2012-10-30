@@ -2,15 +2,18 @@
 
 This project contains [Jackson](http://http://wiki.fasterxml.com/JacksonHome) extension component for reading and writing data encoded using
 [Apache Avro](http://avro.apache.org/) data format.
-This project adds necessary abstractions on top to make things work with other Jackson functionality.
+
+Pproject adds necessary abstractions on top to make things work with other Jackson functionality. It relies on standard Avro library for Avro Schema handling, and parts of serialization.
 
 Project is licensed under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt).
 
 # Status
 
-Project is in its prototype phase. Stay tuned.
+Project is in its prototype phase and requires Jackson 2.1.
+It works for simple data-binding use cases.
+The goal is to make it production ready during 2.1 maintenance cycle.
 
-No Maven artifacts have been pushed; will do that if and once project gets bit more solid, independently tested.
+Maven snapshot artifacts (2.1.0-SNAPSHOT) have been pushed, but 2.1.0 of the module has not yet been released.
 
 ## Maven dependency
 
@@ -19,25 +22,92 @@ To use this extension on Maven-based projects, use following dependency:
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-avro</artifactId>
-      <version>2.0.0</version>
+      <version>2.1.0-SNAPSHOT</version>
     </dependency>
 
 # Usage
 
-## Simple usage
+## Schema Not Optional
+
+Avro is strongly Schema based on absolute requires an Avro Schema: there is little metadata in data, so you would NOT be able to know what is inside (even less than with formats like Protobuf that at least use tags for bit of metadata).
+
+So the first step is to get an Avro Schema. Currently this means that you need to find JSON-based definitions of an Avro Schema, and use standard Avro library to read it in.
+(note: in future we hope to simplify this process a bit).
+
+One way to do this would be:
+
+    // note: AvroSchema is Jackson type that wraps "native" Avro Schema object:
+
+    String SCHEMA_JSON = ""{\n"
+            +"\"type\": \"record\",\n"
+            +"\"name\": \"Employee\",\n"
+            +"\"fields\": [\n"
+            +" {\"name\": \"name\", \"type\": \"string\"},\n"
+            +" {\"name\": \"age\", \"type\": \"int\"},\n"
+            +" {\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}},\n"
+            +" {\"name\": \"boss\", \"type\": [\"Employee\",\"null\"]}\n"
+            +"]}";
+    Schema raw = new Schema.Parser().setValidate(true).parse(SCHEMA_JSON);
+    AvroSchema schema = new AvroSchema(raw);
+
+## Creating ObjectMapper
+
+(note: although you can use Streaming API -- if you really want -- it is unlikely to be very interesting to use directly)
 
 Usage is as with basic `JsonFactory`; most commonly you will just construct a standard `ObjectMapper` with `com.fasterxml.jackson.dataformat.avro.AvroFactory`, like so:
 
     ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-    User user = mapper.readValue(avroSource, User.class);
 
-but you can also just use underlying `AvroFactory` and parser it produces, for event-based processing:
+## Reading Avro data
+
+Assuming you have the `schema`, from above, and a POJO definition like:
+
+    public class Employee
+    {
+        public String name;
+        public int age;
+        public String[] emails;
+        public Employee boss;
+    }
+
+you can actually use data-binding like so:
+
+    byte[] avroData = ... ; // or find an InputStream
+    Employee empl = mapper.reader(Employee.class)
+       .with(schema)
+       .readValue(avroData);
+
+## Writing avro data
+
+Writing Avro-encoded data follows similar pattern:
+
+    byte[] avroData = mapper.writer(schema)
+       .writeValueAsBytes(empl);
+
+and that's about it, for now.
+
+## Ok, so you REALLY want Streaming API
+
+You can also just use underlying `AvroFactory` and parser it produces, for event-based processing:
 
     AvroFactory factory = new AvroFactory();
     JsonParser parser = factory.createJsonParser(avroBytes); // don't be fooled by method name...
+    // but note: Schema is NOT optional, regardless:
+    parser.setSchema(schema);
     while (parser.nextToken() != null) {
       // do something!
     }
+
+and similarly with `JsonGenerator`
+
+# Issues
+
+Currently, following things are likely to cause problems:
+
+* Enum types will not yet work as expected
+* More advanced features will probably not work well. This includes:
+ * Polymorphic type handling
+ * Object identity
 
 # Documentation
 
