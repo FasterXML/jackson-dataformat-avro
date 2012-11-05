@@ -7,6 +7,8 @@ import org.apache.avro.generic.*;
 import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.dataformat.avro.ser.ArrayWriteContext;
+import com.fasterxml.jackson.dataformat.avro.ser.ObjectWriteContext;
 
 public abstract class AvroWriteContext
     extends JsonStreamContext
@@ -159,7 +161,7 @@ public abstract class AvroWriteContext
             }
             GenericArray<Object> arr = _array(_schema);
             _rootValue = arr;
-            return new ArrayContext(this, _generator, arr);
+            return new ArrayWriteContext(this, _generator, arr);
         }
         
         @Override
@@ -176,7 +178,7 @@ public abstract class AvroWriteContext
             }
             GenericRecord rec = new GenericData.Record(_schema);
             _rootValue = rec;
-            return new ObjectContext(this, _generator, rec);
+            return new ObjectWriteContext(this, _generator, rec);
         }
 
         @Override
@@ -193,138 +195,6 @@ public abstract class AvroWriteContext
         @Override
         public void appendDesc(StringBuilder sb) {
             sb.append("/");
-        }
-    }
-
-    private final static class ObjectContext
-        extends AvroWriteContext
-    {
-        protected final GenericRecord _record;
-
-        protected String _currentName;
-        
-        protected boolean _expectValue = false;
-        
-        protected ObjectContext(AvroWriteContext parent, AvroGenerator generator,
-                GenericRecord record)
-        {
-            super(TYPE_OBJECT, parent, generator, record.getSchema());
-            _record = record;
-        }
-
-        @Override
-        public final String getCurrentName() { return _currentName; }
-
-        @Override
-        public boolean canClose() {
-            return !_expectValue;
-        }
-        
-        @Override
-        public final AvroWriteContext createChildArrayContext()
-        {
-            _verifyValueWrite();
-            GenericArray<Object> arr = _array(_findField().schema());
-            _record.put(_currentName, arr);
-            return new ArrayContext(this, _generator, arr);
-        }
-        
-        @Override
-        public final AvroWriteContext createChildObjectContext()
-        {
-            _verifyValueWrite();
-            Schema.Field f = _findField();
-            GenericRecord ob = new GenericData.Record(f.schema());
-            _record.put(_currentName, ob);
-            return new ObjectContext(this, _generator, ob);
-        }
-
-        @Override
-        public final boolean writeFieldName(String name)
-        {
-            _currentName = name;
-            _expectValue = true;
-            return true;
-        }
-        
-        @Override
-        public void writeValue(Object value) {
-            _verifyValueWrite();
-            _record.put(_currentName, value);
-        }
-        
-        @Override
-        public void appendDesc(StringBuilder sb)
-        {
-            sb.append('{');
-            if (_currentName != null) {
-                sb.append('"');
-                sb.append(_currentName);
-                sb.append('"');
-            } else {
-                sb.append('?');
-            }
-            sb.append('}');
-        }
-
-        protected void _verifyValueWrite()
-        {
-            if (!_expectValue) {
-                throw new IllegalStateException("Expecting FIELD_NAME, not value");
-            }
-            _expectValue = false;
-        }
-        
-        protected Schema.Field _findField() {
-            if (_currentName == null) {
-                throw new IllegalStateException("No current field name");
-            }
-            Schema.Field f = _schema.getField(_currentName);
-            if (f == null) {
-                throw new IllegalStateException("No field named '"+_currentName+"'");
-            }
-            return f;
-        }
-    }
-
-    private final static class ArrayContext
-        extends AvroWriteContext
-    {
-        protected final GenericArray<Object> _array;
-        
-        protected ArrayContext(AvroWriteContext parent, AvroGenerator generator,
-                GenericArray<Object> array)
-        {
-            super(TYPE_ARRAY, parent, generator, array.getSchema());
-            _array = array;
-        }
-        
-        @Override
-        public final AvroWriteContext createChildArrayContext()
-        {
-            GenericArray<Object> arr = _array(_schema.getElementType()); 
-            _array.add(arr);
-            return new ArrayContext(this, _generator, arr);
-        }
-        
-        @Override
-        public final AvroWriteContext createChildObjectContext() {
-            GenericRecord ob = new GenericData.Record(_schema.getElementType());
-            _array.add(ob);
-            return new ObjectContext(this, _generator, ob);
-        }
-        
-        @Override
-        public void writeValue(Object value) {
-            _array.add(value);
-        }
-        
-        @Override
-        public void appendDesc(StringBuilder sb)
-        {
-            sb.append('[');
-            sb.append(getCurrentIndex());
-            sb.append(']');
         }
     }
 }
