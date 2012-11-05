@@ -21,7 +21,7 @@ public final class ArrayWriteContext
     @Override
     public final AvroWriteContext createChildArrayContext()
     {
-        GenericArray<Object> arr = _createArray(_schema);
+        GenericArray<Object> arr = _createArray(_schema.getElementType());
         _array.add(arr);
         return new ArrayWriteContext(this, _generator, arr);
     }
