@@ -2,7 +2,6 @@ package com.fasterxml.jackson.dataformat.avro.ser;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
@@ -36,7 +35,7 @@ public final class ObjectWriteContext
     public final AvroWriteContext createChildArrayContext()
     {
         _verifyValueWrite();
-        GenericArray<Object> arr = _array(_findField().schema());
+        GenericArray<Object> arr = _createArray(_findField().schema());
         _record.put(_currentName, arr);
         return new ArrayWriteContext(this, _generator, arr);
     }
@@ -46,11 +45,11 @@ public final class ObjectWriteContext
     {
         _verifyValueWrite();
         Schema.Field f = _findField();
-        GenericRecord ob = new GenericData.Record(f.schema());
+        GenericRecord ob = _createRecord(f.schema());
         _record.put(_currentName, ob);
         return new ObjectWriteContext(this, _generator, ob);
     }
-
+    
     @Override
     public final boolean writeFieldName(String name)
     {

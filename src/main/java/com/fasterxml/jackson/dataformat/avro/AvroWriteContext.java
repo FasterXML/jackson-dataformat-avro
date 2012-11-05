@@ -72,10 +72,6 @@ public abstract class AvroWriteContext
     }
     
     public boolean canClose() { return true; }
-    
-    protected GenericArray<Object> _array(Schema schema) {
-        return new GenericData.Array<Object>(8, schema);
-    }
 
     protected abstract void appendDesc(StringBuilder sb);
     
@@ -91,6 +87,51 @@ public abstract class AvroWriteContext
         StringBuilder sb = new StringBuilder(64);
         appendDesc(sb);
         return sb.toString();
+    }
+
+    // // // Shared helper methods
+    
+    protected GenericRecord _createRecord(Schema schema)
+    {
+        // Quick check: if type is Union, need to find actual record type...
+        if (schema.getType() == Schema.Type.UNION) {
+            Schema match = null;
+            for (Schema s : schema.getTypes()) {
+                if (s.getType() == Schema.Type.RECORD) {
+                    if (match != null) {
+                        throw new IllegalStateException("Multiple Record types, can not figure out which to use for: "
+                                +schema);
+                    }
+                    match = s;
+                }
+            }
+            if (match == null) {
+                throw new IllegalStateException("No Record type found in union type: "+schema);
+            }
+            schema = match;
+        }
+        return new GenericData.Record(schema);
+    }
+    
+    protected GenericArray<Object> _createArray(Schema schema)
+    {
+        if (schema.getType() == Schema.Type.UNION) {
+            Schema match = null;
+            for (Schema s : schema.getTypes()) {
+                if (s.getType() == Schema.Type.ARRAY) {
+                    if (match != null) {
+                        throw new IllegalStateException("Multiple Array types, can not figure out which to use for: "
+                                +schema);
+                    }
+                    match = s;
+                }
+            }
+            if (match == null) {
+                throw new IllegalStateException("No Array type found in union type: "+schema);
+            }
+            schema = match;
+        }
+        return new GenericData.Array<Object>(8, schema);
     }
 
     /*
@@ -159,7 +200,7 @@ public abstract class AvroWriteContext
                 throw new IllegalStateException("Can not write START_ARRAY; schema type is "
                         +_schema.getType());
             }
-            GenericArray<Object> arr = _array(_schema);
+            GenericArray<Object> arr = _createArray(_schema);
             _rootValue = arr;
             return new ArrayWriteContext(this, _generator, arr);
         }
@@ -176,7 +217,7 @@ public abstract class AvroWriteContext
                 throw new IllegalStateException("Can not write START_OBJECT; schema type is "
                         +_schema.getType());
             }
-            GenericRecord rec = new GenericData.Record(_schema);
+            GenericRecord rec = _createRecord(_schema);
             _rootValue = rec;
             return new ObjectWriteContext(this, _generator, rec);
         }

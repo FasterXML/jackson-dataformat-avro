@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.dataformat.avro.ser;
 
 import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
@@ -22,16 +21,16 @@ public final class ArrayWriteContext
     @Override
     public final AvroWriteContext createChildArrayContext()
     {
-        GenericArray<Object> arr = _array(_schema.getElementType()); 
+        GenericArray<Object> arr = _createArray(_schema);
         _array.add(arr);
         return new ArrayWriteContext(this, _generator, arr);
     }
     
     @Override
     public final AvroWriteContext createChildObjectContext() {
-        GenericRecord ob = new GenericData.Record(_schema.getElementType());
-        _array.add(ob);
-        return new ObjectWriteContext(this, _generator, ob);
+        GenericRecord rec = _createRecord(_schema.getElementType());
+        _array.add(rec);
+        return new ObjectWriteContext(this, _generator, rec);
     }
     
     @Override
