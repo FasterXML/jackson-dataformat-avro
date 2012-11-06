@@ -500,7 +500,7 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public void writeNumber(String encodedValue) throws IOException,JsonGenerationException, UnsupportedOperationException
     {
-        writeString(encodedValue);
+        throw new UnsupportedOperationException("Can not write 'untyped' numbers");
     }
 
     /*
