@@ -1,9 +1,14 @@
 package perf;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.EncoderFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -100,29 +105,44 @@ abstract class PerfBase
         }
     }
 
-    protected AvroSchema parseSchema() {
+    protected final EncoderFactory ENCODER_FACTORY = EncoderFactory.get();
+    protected final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
+    protected final AvroSchema itemSchema;
+
+    protected final ObjectMapper avroMapper;
+    protected final ObjectReader itemReader;
+    protected final ObjectWriter itemWriter;
+    
+    protected PerfBase()
+    {
+        avroMapper =  new ObjectMapper(new AvroFactory());
+        avroMapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
+        itemSchema = itemSchema();
+        itemReader = avroMapper
+                .reader(MediaItem.class)
+                .with(itemSchema);
+        itemWriter = avroMapper
+                .writerWithType(MediaItem.class)
+                .withSchema(itemSchema);
+    }
+
+    protected byte[] itemToBytes(MediaItem item) throws IOException {
+        return itemWriter.writeValueAsBytes(item);
+    }
+    
+    protected GenericRecord itemToRecord(MediaItem item) throws IOException
+    {
+        final byte[] avro = itemWriter.writeValueAsBytes(item);
+        GenericDatumReader<GenericRecord> r = new GenericDatumReader<GenericRecord>(itemSchema.getAvroSchema());
+        return r.read(null,
+                DECODER_FACTORY.binaryDecoder(new ByteArrayInputStream(avro), null));
+    }
+    
+    protected static AvroSchema itemSchema() {
         return new AvroSchema(new Schema.Parser().setValidate(true).parse(JVM_SERIALIZERS_SCHEMA_STR));        
     }
 
-    protected ObjectMapper avroMapper() {
-        ObjectMapper mapper =  new ObjectMapper(new AvroFactory());
-        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
-        return mapper;
-    }
-    
-    protected ObjectReader avroReader(Class<?> type) {
-        return avroMapper()
-                .reader(type)
-                .with(parseSchema());
-    }
- 
-    protected ObjectWriter avroWriter(Class<?> type) {
-        return avroMapper()
-                .writerWithType(type)
-                .withSchema(parseSchema());
-    }
-    
-    protected MediaItem buildItem()
+    protected static MediaItem buildItem()
     {
         Media content = new Media();
         content.player = Player.JAVA;

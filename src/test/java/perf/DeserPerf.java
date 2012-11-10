@@ -1,5 +1,7 @@
 package perf;
 
+import org.apache.avro.io.DecoderFactory;
+
 import com.fasterxml.jackson.databind.ObjectReader;
 
 /**
@@ -9,6 +11,8 @@ public final class DeserPerf extends PerfBase
 {
     private final int REPS;
 
+    private final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
+    
     private DeserPerf() {
         // Let's try to guestimate suitable size
         REPS = 9000;
@@ -23,13 +27,13 @@ public final class DeserPerf extends PerfBase
         
         // Use Jackson?
 //        byte[] json = jsonMapper.writeValueAsBytes(item);
-        byte[] avro =  avroWriter(MediaItem.class).writeValueAsBytes(item);
+        byte[] avro =  itemToBytes(item);
         
         System.out.println("Warmed up: data size is "+avro.length+" bytes; "+REPS+" reps -> "
                 +((REPS * avro.length) >> 10)+" kB per iteration");
         System.out.println();
 
-        final ObjectReader reader = avroReader(MediaItem.class);
+        final ObjectReader reader = itemReader;
         
         int round = 0;
         while (true) {

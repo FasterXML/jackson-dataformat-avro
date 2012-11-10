@@ -2,6 +2,10 @@ package perf;
 
 import java.io.*;
 
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryEncoder;
+
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 public final class SerPerf extends PerfBase
@@ -14,10 +18,15 @@ public final class SerPerf extends PerfBase
 
     private final int REPS;
 
+    private final GenericDatumWriter<GenericRecord> WRITER;
+    
+    private BinaryEncoder avroEncoder;
+    
     private SerPerf() throws Exception
     {
         // Let's try to guesstimate suitable size...
         REPS = 6000;
+        WRITER = new GenericDatumWriter<GenericRecord>(itemSchema.getAvroSchema());
     }
     
     public void test()
@@ -29,24 +38,32 @@ public final class SerPerf extends PerfBase
         ByteArrayOutputStream result = new ByteArrayOutputStream();
 
         final MediaItem item = buildItem();
-        final ObjectWriter writer = avroWriter(MediaItem.class);
+        final ObjectWriter writer = itemWriter;
+        final GenericRecord itemRecord = itemToRecord(item);
         
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-            int round = (i % 3);
+            int round = (i % 2);
 
             // override?
-            round = 0;
+            round = 1;
 
             long curr = System.currentTimeMillis();
+            int len;
             String msg;
 
             switch (round) {
 
             case 0:
-                msg = "Serialize, Avro";
-                sum += testObjectSer(writer, item, REPS+REPS, result);
+                msg = "Serialize, Avro/Jackson";
+                len = testObjectSer(writer, item, REPS+REPS, result);
+                sum += len;
+                break;
+            case 1:
+                msg = "Serialize, Avro/std";
+                len = testAvroSer(itemRecord, REPS+REPS, result);
+                sum += len;
                 break;
             default:
                 throw new Error("Internal error");
@@ -54,7 +71,7 @@ public final class SerPerf extends PerfBase
 
             curr = System.currentTimeMillis() - curr;
             if (round == 0) {  System.out.println(); }
-            System.out.println("Test '"+msg+"' -> "+curr+" msecs ("+(sum & 0xFF)+").");
+            System.out.println("Test '"+msg+"' -> "+curr+" msecs ("+len+" / "+(sum & 0xFF)+").");
             if ((i & 0x1F) == 0) { // GC every 64 rounds
                 System.out.println("[GC]");
                 Thread.sleep(20L);
@@ -64,13 +81,28 @@ public final class SerPerf extends PerfBase
         }
     }
 
-    private int testObjectSer(ObjectWriter writer, Object value, int reps,
+    private int testObjectSer(ObjectWriter writer, MediaItem value, int reps,
             ByteArrayOutputStream result)
         throws Exception
     {
         for (int i = 0; i < reps; ++i) {
             result.reset();
             writer.writeValue(result, value);
+        }
+        return result.size();
+    }
+    
+    private int testAvroSer(GenericRecord value, int reps,
+            ByteArrayOutputStream result)
+        throws Exception
+    {
+        for (int i = 0; i < reps; ++i) {
+            result.reset();
+            // reuse?
+            //avroEncoder = ENCODER_FACTORY.binaryEncoder(result, null);
+            avroEncoder = ENCODER_FACTORY.binaryEncoder(result, avroEncoder);
+            WRITER.write(value, avroEncoder);
+            avroEncoder.flush();
         }
         return result.size(); // just to get some non-optimizable number
     }
