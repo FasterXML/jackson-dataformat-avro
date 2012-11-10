@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
 abstract class PerfBase
@@ -99,6 +104,24 @@ abstract class PerfBase
         return new AvroSchema(new Schema.Parser().setValidate(true).parse(JVM_SERIALIZERS_SCHEMA_STR));        
     }
 
+    protected ObjectMapper avroMapper() {
+        ObjectMapper mapper =  new ObjectMapper(new AvroFactory());
+        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
+        return mapper;
+    }
+    
+    protected ObjectReader avroReader(Class<?> type) {
+        return avroMapper()
+                .reader(type)
+                .with(parseSchema());
+    }
+ 
+    protected ObjectWriter avroWriter(Class<?> type) {
+        return avroMapper()
+                .writerWithType(type)
+                .withSchema(parseSchema());
+    }
+    
     protected MediaItem buildItem()
     {
         Media content = new Media();

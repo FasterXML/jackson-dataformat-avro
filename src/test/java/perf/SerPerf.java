@@ -2,10 +2,7 @@ package perf;
 
 import java.io.*;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 
 public final class SerPerf extends PerfBase
 {
@@ -32,12 +29,7 @@ public final class SerPerf extends PerfBase
         ByteArrayOutputStream result = new ByteArrayOutputStream();
 
         final MediaItem item = buildItem();
-        final JsonFactory jsonF = new AvroFactory();
-
-        ObjectMapper mapper = new ObjectMapper(jsonF);
-        final ObjectWriter writer = mapper
-                .writerWithType(MediaItem.class)
-                .withSchema(parseSchema());
+        final ObjectWriter writer = avroWriter(MediaItem.class);
         
         while (true) {
 //            Thread.sleep(150L);
@@ -53,7 +45,7 @@ public final class SerPerf extends PerfBase
             switch (round) {
 
             case 0:
-                msg = "Serialize, JSON";
+                msg = "Serialize, Avro";
                 sum += testObjectSer(writer, item, REPS+REPS, result);
                 break;
             default:

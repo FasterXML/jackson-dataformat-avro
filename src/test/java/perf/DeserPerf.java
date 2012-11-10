@@ -1,10 +1,6 @@
 package perf;
 
-import com.fasterxml.jackson.core.*;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 
 /**
  * Micro-benchmark for comparing performance of bean deserialization
@@ -24,25 +20,16 @@ public final class DeserPerf extends PerfBase
         int sum = 0;
 
         final MediaItem item = buildItem();
-        final JsonFactory jsonF = new AvroFactory();
-
-        ObjectMapper mapper = new ObjectMapper(jsonF);
-        final ObjectReader reader = mapper
-                .reader(MediaItem.class)
-                .with(parseSchema());
         
         // Use Jackson?
 //        byte[] json = jsonMapper.writeValueAsBytes(item);
-        byte[] avro =  mapper
-                .writerWithType(MediaItem.class)
-                .withSchema(parseSchema()).writeValueAsBytes(item);
+        byte[] avro =  avroWriter(MediaItem.class).writeValueAsBytes(item);
         
         System.out.println("Warmed up: data size is "+avro.length+" bytes; "+REPS+" reps -> "
                 +((REPS * avro.length) >> 10)+" kB per iteration");
         System.out.println();
 
-// for debugging:
-// System.err.println("JSON = "+jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item));
+        final ObjectReader reader = avroReader(MediaItem.class);
         
         int round = 0;
         while (true) {
@@ -60,7 +47,7 @@ public final class DeserPerf extends PerfBase
             switch (round) {
             case 0:
             case 1:
-                msg = "Deserialize, bind, YAML";
+                msg = "Deserialize, bind, Avro";
                 sum += testDeser(reader, avro, REPS);
                 break;
 
