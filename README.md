@@ -3,17 +3,14 @@
 This project contains [Jackson](http://http://wiki.fasterxml.com/JacksonHome) extension component for reading and writing data encoded using
 [Apache Avro](http://avro.apache.org/) data format.
 
-Pproject adds necessary abstractions on top to make things work with other Jackson functionality. It relies on standard Avro library for Avro Schema handling, and parts of serialization.
+Project adds necessary abstractions on top to make things work with other Jackson functionality. It relies on standard Avro library for Avro Schema handling, and some parts of deserialization/serialization.
 
 Project is licensed under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt).
 
 # Status
 
-Project is in its prototype phase and requires Jackson 2.1.
-It works for simple data-binding use cases.
-The goal is to make it production ready during 2.1 maintenance cycle.
-
-Maven snapshot artifacts (2.1.0-SNAPSHOT) have been pushed, but 2.1.0 of the module has not yet been released.
+Module is based on Jackson 2.1, and has been tested with simple Avro Schemas.
+Both serialization and deserialization work.
 
 ## Maven dependency
 
@@ -22,19 +19,20 @@ To use this extension on Maven-based projects, use following dependency:
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-avro</artifactId>
-      <version>2.1.0-SNAPSHOT</version>
+      <version>2.1.0</version>
     </dependency>
 
 # Usage
 
 ## Schema Not Optional
 
-Avro is strongly Schema based on absolute requires an Avro Schema: there is little metadata in data, so you would NOT be able to know what is inside (even less than with formats like Protobuf that at least use tags for bit of metadata).
+Avro is strongly Schema-based, and all use requires an Avro Schema.
+Since there is little metadata in encoded in Avro data, it is not possible to know anything about structure of data without Schema.
 
 So the first step is to get an Avro Schema. Currently this means that you need to find JSON-based definitions of an Avro Schema, and use standard Avro library to read it in.
 (note: in future we hope to simplify this process a bit).
 
-One way to do this would be:
+One way to do this is:
 
     // note: AvroSchema is Jackson type that wraps "native" Avro Schema object:
 
