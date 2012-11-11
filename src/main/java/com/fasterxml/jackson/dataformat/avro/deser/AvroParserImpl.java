@@ -30,7 +30,7 @@ public class AvroParserImpl extends AvroParser
             ObjectCodec codec, InputStream in)
     {
         super(ctxt, parserFeatures, avroFeatures, codec, in);
-        _decoder = AvroSchema.decoderFactory().binaryDecoder(in, null);
+        _decoder = AvroSchema.decoder(in);
     }
 
     public AvroParserImpl(IOContext ctxt, int parserFeatures, int avroFeatures,
@@ -39,7 +39,7 @@ public class AvroParserImpl extends AvroParser
     {
         super(ctxt, parserFeatures, avroFeatures, codec,
                 data, offset, len);
-        _decoder = AvroSchema.decoderFactory().binaryDecoder(data, offset, len, null);
+        _decoder = AvroSchema.decoder(data, offset, len);
     }
 
     /*

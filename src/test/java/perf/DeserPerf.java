@@ -52,7 +52,7 @@ public final class DeserPerf extends PerfBase
             String msg;
             round = (++round % 3);
 
-if (true) round = 2; 
+//if (true) round = 2; 
             
             boolean lf = (round == 0);
 
