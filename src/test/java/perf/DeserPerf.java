@@ -1,7 +1,11 @@
 package perf;
 
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 
 /**
@@ -13,9 +17,12 @@ public final class DeserPerf extends PerfBase
 
     private final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
     
+    private final GenericDatumReader<GenericRecord> READER;
+    
     private DeserPerf() {
         // Let's try to guestimate suitable size
-        REPS = 9000;
+        REPS = 13000;
+        READER = new GenericDatumReader<GenericRecord>(itemSchema.getAvroSchema());
     }
     
     public void test()
@@ -33,26 +40,34 @@ public final class DeserPerf extends PerfBase
                 +((REPS * avro.length) >> 10)+" kB per iteration");
         System.out.println();
 
-        final ObjectReader reader = itemReader;
+        final ObjectReader avroReader = itemReader;
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        final ObjectReader jsonReader = jsonMapper.reader(MediaItem.class);
         
         int round = 0;
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-//            int round = 2;
 
             long curr = System.currentTimeMillis();
             String msg;
-            round = (++round % 2);
+            round = (++round % 3);
 
-//if (true) round = 3; 
+if (true) round = 2; 
             
             boolean lf = (round == 0);
 
             switch (round) {
             case 0:
+                msg = "Deserialize, Avro/Jackson";
+                sum += testDeser(avroReader, avro, REPS);
+                break;
             case 1:
-                msg = "Deserialize, bind, Avro";
-                sum += testDeser(reader, avro, REPS);
+                msg = "Deserialize, Avro/STD";
+                sum += testDeserAvro(avro, REPS);
+                break;
+            case 2:
+                msg = "Deserialize, JSON/Jackson";
+                sum += testDeser(jsonReader, jsonMapper.writeValueAsBytes(item), REPS);
                 break;
 
             default:
@@ -76,6 +91,18 @@ public final class DeserPerf extends PerfBase
             item = reader.readValue(input, 0, input.length);
         }
         return item.hashCode(); // just to get some non-optimizable number
+    }
+
+    protected int testDeserAvro(byte[] input, int reps)
+        throws Exception
+    {
+        BinaryDecoder decoder = null;
+        GenericRecord rec = null;
+        for (int i = 0; i < reps; ++i) {
+            decoder = DECODER_FACTORY.binaryDecoder(input, decoder);
+            rec = READER.read(null, decoder);
+        }
+        return rec.hashCode(); // just to get some non-optimizable number
     }
     
     public static void main(String[] args) throws Exception

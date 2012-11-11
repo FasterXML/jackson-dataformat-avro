@@ -6,6 +6,7 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryEncoder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 public final class SerPerf extends PerfBase
@@ -20,12 +21,10 @@ public final class SerPerf extends PerfBase
 
     private final GenericDatumWriter<GenericRecord> WRITER;
     
-    private BinaryEncoder avroEncoder;
-    
     private SerPerf() throws Exception
     {
         // Let's try to guesstimate suitable size...
-        REPS = 6000;
+        REPS = 9000;
         WRITER = new GenericDatumWriter<GenericRecord>(itemSchema.getAvroSchema());
     }
     
@@ -40,14 +39,16 @@ public final class SerPerf extends PerfBase
         final MediaItem item = buildItem();
         final ObjectWriter writer = itemWriter;
         final GenericRecord itemRecord = itemToRecord(item);
+        final ObjectWriter jsonWriter = new ObjectMapper()
+            .writerWithType(MediaItem.class);
         
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-            int round = (i % 2);
+            int round = (i % 3);
 
             // override?
-            round = 1;
+            round = 0;
 
             long curr = System.currentTimeMillis();
             int len;
@@ -61,8 +62,13 @@ public final class SerPerf extends PerfBase
                 sum += len;
                 break;
             case 1:
-                msg = "Serialize, Avro/std";
+                msg = "Serialize, Avro/STD";
                 len = testAvroSer(itemRecord, REPS+REPS, result);
+                sum += len;
+                break;
+            case 2:
+                msg = "Serialize, JSON";
+                len = testObjectSer(jsonWriter, item, REPS+REPS, result);
                 sum += len;
                 break;
             default:
@@ -96,6 +102,7 @@ public final class SerPerf extends PerfBase
             ByteArrayOutputStream result)
         throws Exception
     {
+        BinaryEncoder avroEncoder = null;
         for (int i = 0; i < reps; ++i) {
             result.reset();
             // reuse?
