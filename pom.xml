@@ -52,6 +52,8 @@ abstractions.
     -->
     <osgi.export>com.fasterxml.jackson.dataformat.avro.*; version=${project.version}
 </osgi.export>
+
+    <jackson.core.version>2.2.0-SNAPSHOT</jackson.core.version>
   </properties>
 
   <dependencies>
@@ -59,7 +61,7 @@ abstractions.
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.1.1</version>
+      <version>${jackson.core.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.avro</groupId>
@@ -77,13 +79,13 @@ abstractions.
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.1.1</version>
+      <version>${jackson.core.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.1.1</version>
+      <version>${jackson.core.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
