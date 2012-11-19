@@ -21,5 +21,4 @@ public abstract class VisitorBase
     public void setProvider(SerializerProvider provider) {
         _provider = provider;
     }
-
 }

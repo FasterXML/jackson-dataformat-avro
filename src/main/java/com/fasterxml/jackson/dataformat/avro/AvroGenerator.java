@@ -530,7 +530,7 @@ public class AvroGenerator extends GeneratorBase
     protected void _complete() throws IOException
     {
         _complete = true;
-        BinaryEncoder encoder = _rootSchema.encoder(_output);
+        BinaryEncoder encoder = AvroSchema.encoder(_output);
         _rootContext.complete(encoder);
         encoder.flush();
     }
