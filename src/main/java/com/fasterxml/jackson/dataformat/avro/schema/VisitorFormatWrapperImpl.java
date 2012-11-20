@@ -1,5 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro.schema;
 
+import org.apache.avro.Schema;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
@@ -19,6 +21,8 @@ public class VisitorFormatWrapperImpl
     
     protected final DefinedSchemas _schemas;
 
+    protected VisitorBase _visitor;
+    
     /*
     /**********************************************************************
     /* Construction
@@ -43,19 +47,35 @@ public class VisitorFormatWrapperImpl
 
     /*
     /**********************************************************************
+    /* Extended API
+    /**********************************************************************
+     */
+
+    public Schema getGeneratedSchema() {
+        if (_visitor == null) {
+            throw new IllegalStateException("No visit methods called: no schema generated");
+        }
+        return _visitor.getAvroSchema();
+    }
+    
+    /*
+    /**********************************************************************
     /* Callbacks
     /**********************************************************************
      */
     
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
-        return new RecordVisitor(convertedType, _schemas);
+        RecordVisitor v = new RecordVisitor(convertedType, _schemas);
+        _visitor = v;
+        return v;
     }
 
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
-        // TODO Auto-generated method stub
-        return null;
+        ArrayVisitor v = new ArrayVisitor(convertedType, _schemas);
+        _visitor = v;
+        return v;
     }
 
     @Override

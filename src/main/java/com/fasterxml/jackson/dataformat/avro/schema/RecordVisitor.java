@@ -56,9 +56,12 @@ public class RecordVisitor
 
     @Override
     public void property(String name, JsonFormatVisitable handler,
-            JavaType propertyTypeHint) throws JsonMappingException
+            JavaType type) throws JsonMappingException
     {
-        // TODO Auto-generated method stub
+        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
+        handler.acceptJsonFormatVisitor(wrapper, type);
+        Schema schema = wrapper.getGeneratedSchema();
+        _fields.add(new Schema.Field(name, schema, null, null));
     }
 
     @Override
@@ -70,8 +73,13 @@ public class RecordVisitor
 
     @Override
     public void optionalProperty(String name, JsonFormatVisitable handler,
-            JavaType propertyTypeHint) throws JsonMappingException {
-        // TODO Auto-generated method stub
+            JavaType type) throws JsonMappingException
+    {
+        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
+        handler.acceptJsonFormatVisitor(wrapper, type);
+        Schema schema = wrapper.getGeneratedSchema();
+        schema = unionWithNull(schema);
+        _fields.add(new Schema.Field(name, schema, null, null));
     }
 
     @Override
@@ -103,17 +111,5 @@ public class RecordVisitor
         RecordVisitor v = new RecordVisitor(t, _schemas);
         prop.depositSchemaProperty(v);
         return v.getAvroSchema();
-    }
-
-    protected Schema unionWithNull(Schema otherSchema)
-    {
-        List<Schema> schemas = new ArrayList<Schema>();
-        schemas.add(Schema.create(Schema.Type.NULL));
-        schemas.add(otherSchema);
-        return Schema.createUnion(schemas);
-    }
-    
-    protected <T> T _throwUnsupported() {
-        throw new UnsupportedOperationException("Format variation not supported");
     }
 }
