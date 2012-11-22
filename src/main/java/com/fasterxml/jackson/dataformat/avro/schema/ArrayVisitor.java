@@ -43,7 +43,7 @@ public class ArrayVisitor
     {
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         visitable.acceptJsonFormatVisitor(wrapper, type);
-        _elementSchema = wrapper.getGeneratedSchema();
+        _elementSchema = wrapper.getAvroSchema();
     }
 
     @Override

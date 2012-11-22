@@ -24,13 +24,9 @@ public class RecordVisitor
     {
         _type = type;
         _schemas = schemas;
-        Class<?> cls = type.getRawClass();
-        String name = cls.getSimpleName();
-        Package pkg = cls.getPackage();
-        String namespace = (pkg == null) ? "" : pkg.getName();
-        _avroSchema = Schema.createRecord(name,
-                "Schema for "+type,
-                namespace, false);
+        _avroSchema = Schema.createRecord(getName(type),
+                "Schema for "+type.toCanonical(),
+                getNamespace(type), false);
         schemas.addSchema(type, _avroSchema);
     }
     
@@ -60,7 +56,7 @@ public class RecordVisitor
     {
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         handler.acceptJsonFormatVisitor(wrapper, type);
-        Schema schema = wrapper.getGeneratedSchema();
+        Schema schema = wrapper.getAvroSchema();
         _fields.add(new Schema.Field(name, schema, null, null));
     }
 
@@ -77,7 +73,7 @@ public class RecordVisitor
     {
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         handler.acceptJsonFormatVisitor(wrapper, type);
-        Schema schema = wrapper.getGeneratedSchema();
+        Schema schema = wrapper.getAvroSchema();
         schema = unionWithNull(schema);
         _fields.add(new Schema.Field(name, schema, null, null));
     }

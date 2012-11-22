@@ -1,4 +1,4 @@
-package com.fasterxml.dataformat.avro;
+package com.fasterxml.jackson.dataformat.avro;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

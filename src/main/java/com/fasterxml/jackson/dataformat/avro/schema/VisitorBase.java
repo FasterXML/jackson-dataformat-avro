@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.avro.Schema;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWithSerializerProvider;
@@ -31,6 +32,16 @@ public abstract class VisitorBase
     /* Helper methods for sub-classes
     /**********************************************************************
      */
+
+    protected static String getNamespace(JavaType type) {
+        Class<?> cls = type.getRawClass();
+        Package pkg = cls.getPackage();
+        return (pkg == null) ? "" : pkg.getName();
+    }
+    
+    protected static String getName(JavaType type) {
+        return type.getRawClass().getSimpleName();
+    }
     
     protected Schema unionWithNull(Schema otherSchema)
     {
