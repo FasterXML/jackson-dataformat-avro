@@ -31,7 +31,13 @@ public class TestSimple extends AvroTestBase
         assertNotNull(schema);
 
         String json = schema.getAvroSchema().toString(true);
-        System.out.println("Basic schema:\n"+json);
+        assertNotNull(json);
+
+        // And read it back too just for fun
+        AvroSchema s2 = parseSchema(json);
+        assertNotNull(s2);
+        
+//        System.out.println("Basic schema:\n"+json);
     }
 
     public void testEmployee() throws Exception
@@ -43,6 +49,10 @@ public class TestSimple extends AvroTestBase
         assertNotNull(schema);
 
         String json = schema.getAvroSchema().toString(true);
-        System.out.println("Employee schema:\n"+json);
+        assertNotNull(json);
+        AvroSchema s2 = parseSchema(json);
+        assertNotNull(s2);
+
+//        System.out.println("Employee schema:\n"+json);
     }
 }

@@ -40,7 +40,12 @@ public abstract class VisitorBase
     }
     
     protected static String getName(JavaType type) {
-        return type.getRawClass().getSimpleName();
+        String name = type.getRawClass().getSimpleName();
+        // Alas, some characters not accepted...
+        while (name.indexOf("[]") >= 0) {
+            name = name.replace("[]", "Array");
+        }
+        return name;
     }
     
     protected Schema unionWithNull(Schema otherSchema)
