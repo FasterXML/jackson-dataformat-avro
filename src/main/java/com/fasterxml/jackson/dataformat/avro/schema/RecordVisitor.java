@@ -65,7 +65,13 @@ public class RecordVisitor
     @Override
     public void optionalProperty(BeanProperty writer) throws JsonMappingException {
         Schema schema = schemaForWriter(writer);
-        schema = AvroSchemaHelper.unionWithNull(schema);
+        /* 23-Nov-2012, tatu: Actually let's also assume that primitive type values
+         *   are required, as Jackson does not distinguish whether optional has been
+         *   defined, or is merely the default setting.
+         */
+        if (!writer.getType().isPrimitive()) {
+            schema = AvroSchemaHelper.unionWithNull(schema);
+        }
         _fields.add(new Schema.Field(writer.getName(), schema, null, null));
     }
 
@@ -76,7 +82,9 @@ public class RecordVisitor
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         handler.acceptJsonFormatVisitor(wrapper, type);
         Schema schema = wrapper.getAvroSchema();
-        schema = AvroSchemaHelper.unionWithNull(schema);
+        if (!type.isPrimitive()) {
+            schema = AvroSchemaHelper.unionWithNull(schema);
+        }
         _fields.add(new Schema.Field(name, schema, null, null));
     }
 

@@ -55,7 +55,7 @@ public class TestSimpleGeneration extends AvroTestBase
         assertNotNull(json);
         AvroSchema s2 = parseSchema(json);
         assertNotNull(s2);
-
+        
         Employee empl = new Employee();
         empl.name = "Bobbee";
         empl.age = 39;
