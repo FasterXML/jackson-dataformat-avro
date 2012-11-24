@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 
-public class StringVisitor extends VisitorBase
-    implements JsonStringFormatVisitor
+public class StringVisitor extends JsonStringFormatVisitor.Base
+    implements SchemaBuilder
 {
     protected JavaType _type;
     protected Set<String> _enums;
@@ -19,7 +19,9 @@ public class StringVisitor extends VisitorBase
     }
     
     @Override
-    public void format(JsonValueFormat format) { }
+    public void format(JsonValueFormat format) {
+        // Ideally, we'd recognize UUIDs, Dates etc if need be, here...
+    }
 
     @Override
     public void enumTypes(Set<String> enums) {
@@ -27,11 +29,12 @@ public class StringVisitor extends VisitorBase
     }
 
     @Override
-    public Schema getAvroSchema() {
+    public Schema builtAvroSchema() {
         if (_enums == null) {
             return Schema.create(Schema.Type.STRING);
         }
-        return Schema.createEnum(getName(_type), "", getNamespace(_type),
+        return Schema.createEnum(AvroSchemaHelper.getName(_type), "",
+                AvroSchemaHelper.getNamespace(_type),
                 new ArrayList<String>(_enums));
     }
 }

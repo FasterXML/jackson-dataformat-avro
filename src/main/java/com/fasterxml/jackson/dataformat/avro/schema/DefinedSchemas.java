@@ -7,6 +7,10 @@ import org.apache.avro.Schema;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
+/**
+ * Simple container for Schemas that have already been generated during
+ * generation process; used to share definitions.
+ */
 public class DefinedSchemas
 {
     protected final Map<JavaType, Schema> _schemas = new LinkedHashMap<JavaType, Schema>();

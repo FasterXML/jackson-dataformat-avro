@@ -28,6 +28,8 @@ public abstract class AvroTestBase extends TestCase
     
     protected static class Employee
     {
+        public Employee() { }
+        
         public String name;
         public int age;
         public String[] emails;

@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 
 public class RecordVisitor
-    extends VisitorBase
-    implements JsonObjectFormatVisitor
+    extends JsonObjectFormatVisitor.Base
+    implements SchemaBuilder
 {
     protected final JavaType _type;
     
@@ -24,14 +24,14 @@ public class RecordVisitor
     {
         _type = type;
         _schemas = schemas;
-        _avroSchema = Schema.createRecord(getName(type),
+        _avroSchema = Schema.createRecord(AvroSchemaHelper.getName(type),
                 "Schema for "+type.toCanonical(),
-                getNamespace(type), false);
+                AvroSchemaHelper.getNamespace(type), false);
         schemas.addSchema(type, _avroSchema);
     }
     
     @Override
-    public Schema getAvroSchema() {
+    public Schema builtAvroSchema() {
         // Assumption now is that we are done, so let's assign fields
         _avroSchema.setFields(_fields);
         return _avroSchema;
@@ -63,7 +63,7 @@ public class RecordVisitor
     @Override
     public void optionalProperty(BeanProperty writer) throws JsonMappingException {
         Schema schema = schemaForWriter(writer);
-        schema = unionWithNull(schema);
+        schema = AvroSchemaHelper.unionWithNull(schema);
         _fields.add(new Schema.Field(writer.getName(), schema, null, null));
     }
 
@@ -74,20 +74,20 @@ public class RecordVisitor
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         handler.acceptJsonFormatVisitor(wrapper, type);
         Schema schema = wrapper.getAvroSchema();
-        schema = unionWithNull(schema);
+        schema = AvroSchemaHelper.unionWithNull(schema);
         _fields.add(new Schema.Field(name, schema, null, null));
     }
 
     @Override
     @Deprecated
     public void property(String name) throws JsonMappingException {
-        _throwUnsupported();
+        AvroSchemaHelper.throwUnsupported();
     }
     
     @Override
     @Deprecated
     public void optionalProperty(String name) throws JsonMappingException {
-        _throwUnsupported();
+        AvroSchemaHelper.throwUnsupported();
     }
 
     /*
@@ -106,6 +106,6 @@ public class RecordVisitor
         }
         RecordVisitor v = new RecordVisitor(t, _schemas);
         prop.depositSchemaProperty(v);
-        return v.getAvroSchema();
+        return v.builtAvroSchema();
     }
 }

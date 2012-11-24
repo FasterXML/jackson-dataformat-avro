@@ -2,9 +2,9 @@ package com.fasterxml.jackson.dataformat.avro.schema;
 
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
-public class SchemaGenerator extends VisitorFormatWrapperImpl
+public class AvroSchemaGenerator extends VisitorFormatWrapperImpl
 {
-    public SchemaGenerator() {
+    public AvroSchemaGenerator() {
         super(new DefinedSchemas());
     }
 

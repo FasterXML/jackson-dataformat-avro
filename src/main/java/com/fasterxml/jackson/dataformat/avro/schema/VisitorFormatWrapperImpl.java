@@ -1,7 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro.schema;
 
-import java.util.Set;
-
 import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -19,7 +17,7 @@ public class VisitorFormatWrapperImpl
      * Visitor used for resolving actual Schema, if structured type
      * (or one with complex configuration)
      */
-    protected VisitorBase _visitor;
+    protected SchemaBuilder _builder;
 
     /**
      * Schema for simple types that do not need a visitor.
@@ -55,10 +53,11 @@ public class VisitorFormatWrapperImpl
      */
 
     public Schema getAvroSchema() {
-        if (_visitor == null) {
-            throw new IllegalStateException("No visit methods called: no schema generated");
+        if (_builder == null) {            
+            throw new IllegalStateException("No visit methods called on "+getClass().getName()
+                    +": no schema generated");
         }
-        return _visitor.getAvroSchema();
+        return _builder.builtAvroSchema();
     }
     
     /*
@@ -66,56 +65,59 @@ public class VisitorFormatWrapperImpl
     /* Callbacks
     /**********************************************************************
      */
-    
+
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         RecordVisitor v = new RecordVisitor(convertedType, _schemas);
-        _visitor = v;
+        _builder = v;
         return v;
     }
 
     @Override
+    public JsonMapFormatVisitor expectMapFormat(JavaType mapType) {
+        MapVisitor v = new MapVisitor(mapType, _schemas);
+        _builder = v;
+        return v;
+    }
+    
+    @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
         ArrayVisitor v = new ArrayVisitor(convertedType, _schemas);
-        _visitor = v;
+        _builder = v;
         return v;
     }
 
     @Override
     public JsonStringFormatVisitor expectStringFormat(JavaType convertedType) {
-        return new StringVisitor(convertedType);
+        StringVisitor v = new StringVisitor(convertedType);
+        _builder = v;
+        return v;
     }
 
     @Override
     public JsonNumberFormatVisitor expectNumberFormat(JavaType convertedType) {
+        DoubleVisitor v = new DoubleVisitor();
+        _builder = v;
+        return v;
+
+        /*
         _valueSchema = Schema.create(Schema.Type.DOUBLE);
-        return new JsonNumberFormatVisitor() {
-            @Override
-            public void format(JsonValueFormat format) { }
-            @Override
-            public void enumTypes(Set<String> enums) { }
-        };
+        return new JsonNumberFormatVisitor.Base() { };
+        */
     }
 
     @Override
     public JsonIntegerFormatVisitor expectIntegerFormat(JavaType convertedType) {
-        _valueSchema = Schema.create(Schema.Type.DOUBLE);
-        return new JsonIntegerFormatVisitor() {
-            @Override
-            public void format(JsonValueFormat format) { }
-            @Override
-            public void enumTypes(Set<String> enums) { }
-        };
+        IntegerVisitor v = new IntegerVisitor();
+        _builder = v;
+        return v;
     }
 
     @Override
     public JsonBooleanFormatVisitor expectBooleanFormat(JavaType convertedType) {
         _valueSchema = Schema.create(Schema.Type.BOOLEAN);
-        // We don't really need anything from there, so:
-        return new JsonBooleanFormatVisitor() {
-            @Override public void format(JsonValueFormat format) { }
-            @Override public void enumTypes(Set<String> enums) { }
-        };
+        // We don't really need anything from there (should be ok to return null...)
+        return new JsonBooleanFormatVisitor.Base() { };
     }
 
     @Override

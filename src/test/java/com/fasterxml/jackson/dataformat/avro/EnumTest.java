@@ -2,8 +2,6 @@ package com.fasterxml.jackson.dataformat.avro;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.fasterxml.jackson.dataformat.avro.*;
-
 public class EnumTest extends AvroTestBase
 {
     protected final static String ENUM_SCHEMA_JSON = "{\n"

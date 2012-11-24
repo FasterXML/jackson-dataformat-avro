@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 
 public class ArrayVisitor
-    extends VisitorBase
-    implements JsonArrayFormatVisitor
+    extends JsonArrayFormatVisitor.Base
+    implements SchemaBuilder
 {
     protected final JavaType _type;
     
@@ -22,9 +22,9 @@ public class ArrayVisitor
         _type = type;
         _schemas = schemas;
     }
-    
+
     @Override
-    public Schema getAvroSchema() {
+    public Schema builtAvroSchema() {
         if (_elementSchema == null) {
             throw new IllegalStateException("No element schema created for: "+_type);
         }
@@ -49,6 +49,6 @@ public class ArrayVisitor
     @Override
     public void itemsFormat(JsonFormatTypes type) throws JsonMappingException
     {
-        _elementSchema = simpleSchema(type);
+        _elementSchema = AvroSchemaHelper.simpleSchema(type);
     }
 }
