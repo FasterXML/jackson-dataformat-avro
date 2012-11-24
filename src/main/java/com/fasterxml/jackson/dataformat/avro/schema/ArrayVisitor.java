@@ -17,8 +17,9 @@ public class ArrayVisitor
 
     protected Schema _elementSchema;
     
-    public ArrayVisitor(JavaType type, DefinedSchemas schemas)
+    public ArrayVisitor(SerializerProvider p, JavaType type, DefinedSchemas schemas)
     {
+        super(p);
         _type = type;
         _schemas = schemas;
     }

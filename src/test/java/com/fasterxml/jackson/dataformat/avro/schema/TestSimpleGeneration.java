@@ -51,10 +51,7 @@ public class TestSimpleGeneration extends AvroTestBase
         AvroSchema schema = gen.getGeneratedSchema();
         assertNotNull(schema);
 
-        String json = schema.getAvroSchema().toString(true);
-
-System.out.println("Employee schema:\n"+json);
-        
+        String json = schema.getAvroSchema().toString(true);        
         assertNotNull(json);
         AvroSchema s2 = parseSchema(json);
         assertNotNull(s2);
@@ -76,7 +73,6 @@ System.out.println("Employee schema:\n"+json);
         assertNotNull(e2);
         assertEquals(39, e2.age);
         assertEquals("Bobbee", e2.name);
-        
     }
 
     public void testMap() throws Exception

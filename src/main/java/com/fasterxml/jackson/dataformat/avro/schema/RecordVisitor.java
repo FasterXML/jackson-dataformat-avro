@@ -7,21 +7,23 @@ import java.util.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 
 public class RecordVisitor
     extends JsonObjectFormatVisitor.Base
     implements SchemaBuilder
 {
     protected final JavaType _type;
-    
+
     protected final DefinedSchemas _schemas;
 
     protected Schema _avroSchema;
     
     protected List<Schema.Field> _fields = new ArrayList<Schema.Field>();
     
-    public RecordVisitor(JavaType type, DefinedSchemas schemas)
+    public RecordVisitor(SerializerProvider p, JavaType type, DefinedSchemas schemas)
     {
+        super(p);
         _type = type;
         _schemas = schemas;
         _avroSchema = Schema.createRecord(AvroSchemaHelper.getName(type),
@@ -95,17 +97,24 @@ public class RecordVisitor
     /* Internal methods
     /**********************************************************************
      */
-
+    
     protected Schema schemaForWriter(BeanProperty prop)
         throws JsonMappingException
     {
-        JavaType t = prop.getType();
-        Schema s = _schemas.findSchema(t);
-        if (s != null) {
-            return s;
+        JsonSerializer<?> ser = null;
+
+        // 23-Nov-2012, tatu: Ideally shouldn't need to do this but...
+        if (prop instanceof BeanPropertyWriter) {
+            BeanPropertyWriter bpw = (BeanPropertyWriter) prop;
+            ser = bpw.getSerializer();
         }
-        RecordVisitor v = new RecordVisitor(t, _schemas);
-        prop.depositSchemaProperty(v);
-        return v.builtAvroSchema();
+        if (ser == null) {
+            SerializerProvider prov = getProvider();
+            if (prov == null) throw new Error();
+            ser = prov.findValueSerializer(prop.getType(), prop);
+        }
+        VisitorFormatWrapperImpl visitor = new VisitorFormatWrapperImpl(_schemas);
+        ser.acceptJsonFormatVisitor(visitor, prop.getType());
+        return visitor.getAvroSchema();
     }
 }

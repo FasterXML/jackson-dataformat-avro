@@ -11,10 +11,13 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
 public class StringVisitor extends JsonStringFormatVisitor.Base
     implements SchemaBuilder
 {
-    protected JavaType _type;
+    protected final JavaType _type;
+    protected final DefinedSchemas _schemas;
+
     protected Set<String> _enums;
 
-    public StringVisitor(JavaType t) {
+    public StringVisitor(DefinedSchemas schemas, JavaType t) {
+        _schemas = schemas;
         _type = t;
     }
     
@@ -33,8 +36,10 @@ public class StringVisitor extends JsonStringFormatVisitor.Base
         if (_enums == null) {
             return Schema.create(Schema.Type.STRING);
         }
-        return Schema.createEnum(AvroSchemaHelper.getName(_type), "",
+        Schema s = Schema.createEnum(AvroSchemaHelper.getName(_type), "",
                 AvroSchemaHelper.getNamespace(_type),
                 new ArrayList<String>(_enums));
+        _schemas.addSchema(_type, s);
+        return s;
     }
 }

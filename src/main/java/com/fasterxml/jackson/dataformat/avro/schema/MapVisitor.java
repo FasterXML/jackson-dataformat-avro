@@ -4,6 +4,7 @@ import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
 
@@ -16,15 +17,15 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
     
     protected Schema _valueSchema;
     
-    public MapVisitor(JavaType type, DefinedSchemas schemas)
+    public MapVisitor(SerializerProvider p, JavaType type, DefinedSchemas schemas)
     {
+        super(p);
         _type = type;
         _schemas = schemas;
     }
 
     @Override
     public Schema builtAvroSchema() {
-System.err.println("built? "+_valueSchema);
         // Assumption now is that we are done, so let's assign fields
         if (_valueSchema == null) {
             throw new IllegalStateException("Missing value type for "+_type);
@@ -42,8 +43,6 @@ System.err.println("built? "+_valueSchema);
     public void keyFormat(JsonFormatVisitable handler, JavaType keyType)
         throws JsonMappingException
     {
-System.err.println(" keyFormat for "+keyType);
-
         /* We actually don't care here, since Avro only has String-keyed
          * Maps like JSON: meaning that anything Jackson can regularly
          * serialize must convert to Strings anyway.
@@ -56,8 +55,6 @@ System.err.println(" keyFormat for "+keyType);
     public void valueFormat(JsonFormatVisitable handler, JavaType valueType)
         throws JsonMappingException
     {
-System.err.println(" valueFormat  for "+valueType+"; handler = "+handler);
-
         VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
         handler.acceptJsonFormatVisitor(wrapper, valueType);
         _valueSchema = wrapper.getAvroSchema();

@@ -53,7 +53,10 @@ public class VisitorFormatWrapperImpl
      */
 
     public Schema getAvroSchema() {
-        if (_builder == null) {            
+        if (_valueSchema != null) {
+            return _valueSchema;
+        }
+        if (_builder == null) {
             throw new IllegalStateException("No visit methods called on "+getClass().getName()
                     +": no schema generated");
         }
@@ -67,29 +70,42 @@ public class VisitorFormatWrapperImpl
      */
 
     @Override
-    public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
-        RecordVisitor v = new RecordVisitor(convertedType, _schemas);
+    public JsonObjectFormatVisitor expectObjectFormat(JavaType type) {
+
+        Schema s = _schemas.findSchema(type);
+        if (s != null) {
+            _valueSchema = s;
+            return null;
+        }
+        RecordVisitor v = new RecordVisitor(_provider, type, _schemas);
         _builder = v;
         return v;
     }
 
     @Override
     public JsonMapFormatVisitor expectMapFormat(JavaType mapType) {
-        MapVisitor v = new MapVisitor(mapType, _schemas);
+        MapVisitor v = new MapVisitor(_provider, mapType, _schemas);
         _builder = v;
         return v;
     }
     
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
-        ArrayVisitor v = new ArrayVisitor(convertedType, _schemas);
+        ArrayVisitor v = new ArrayVisitor(_provider, convertedType, _schemas);
         _builder = v;
         return v;
     }
 
     @Override
-    public JsonStringFormatVisitor expectStringFormat(JavaType convertedType) {
-        StringVisitor v = new StringVisitor(convertedType);
+    public JsonStringFormatVisitor expectStringFormat(JavaType type)
+    {
+        // may be getting ref to Enum type:
+        Schema s = _schemas.findSchema(type);
+        if (s != null) {
+            _valueSchema = s;
+            return null;
+        }
+        StringVisitor v = new StringVisitor(_schemas, type);
         _builder = v;
         return v;
     }
@@ -99,15 +115,17 @@ public class VisitorFormatWrapperImpl
         DoubleVisitor v = new DoubleVisitor();
         _builder = v;
         return v;
-
-        /*
-        _valueSchema = Schema.create(Schema.Type.DOUBLE);
-        return new JsonNumberFormatVisitor.Base() { };
-        */
     }
 
     @Override
-    public JsonIntegerFormatVisitor expectIntegerFormat(JavaType convertedType) {
+    public JsonIntegerFormatVisitor expectIntegerFormat(JavaType type) {
+        // possible we might be getting Enum type, using indexes:
+        // may be getting ref to Enum type:
+        Schema s = _schemas.findSchema(type);
+        if (s != null) {
+            _valueSchema = s;
+            return null;
+        }
         IntegerVisitor v = new IntegerVisitor();
         _builder = v;
         return v;
@@ -116,14 +134,15 @@ public class VisitorFormatWrapperImpl
     @Override
     public JsonBooleanFormatVisitor expectBooleanFormat(JavaType convertedType) {
         _valueSchema = Schema.create(Schema.Type.BOOLEAN);
-        // We don't really need anything from there (should be ok to return null...)
-        return new JsonBooleanFormatVisitor.Base() { };
+        // We don't really need anything from there so:
+        return null;
     }
 
     @Override
     public JsonNullFormatVisitor expectNullFormat(JavaType convertedType) {
         _valueSchema = Schema.create(Schema.Type.NULL);
-        return new JsonNullFormatVisitor() { };
+        // no info on null type that we care about so:
+        return null;
     }
 
     @Override
