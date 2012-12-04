@@ -24,7 +24,7 @@
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
   <name>Jackson-dataformat-Avro</name>
-  <version>2.1.2-SNAPSHOT</version>
+  <version>2.2.0-SNAPSHOT</version>
   <description>Support for reading and writing AVRO-encoded data via Jackson
 abstractions.
   </description>
@@ -44,7 +44,8 @@ abstractions.
   </developers>
 
   <properties>
-     <!--  this module is 1.6 only -->
+    <jackson.core.version>2.2.0-SNAPSHOT</jackson.core.version>
+    <!--  this module is 1.6 only -->
     <javac.src.version>1.6</javac.src.version>
     <javac.target.version>1.6</javac.target.version>
     <!--
@@ -52,8 +53,6 @@ abstractions.
     -->
     <osgi.export>com.fasterxml.jackson.dataformat.avro.*; version=${project.version}
 </osgi.export>
-
-    <jackson.core.version>2.2.0-SNAPSHOT</jackson.core.version>
   </properties>
 
   <dependencies>
