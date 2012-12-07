@@ -89,7 +89,7 @@ and that's about it, for now.
 You can also just use underlying `AvroFactory` and parser it produces, for event-based processing:
 
     AvroFactory factory = new AvroFactory();
-    JsonParser parser = factory.createJsonParser(avroBytes); // don't be fooled by method name...
+    JsonParser parser = factory.createParser(avroBytes);
     // but note: Schema is NOT optional, regardless:
     parser.setSchema(schema);
     while (parser.nextToken() != null) {
@@ -102,7 +102,6 @@ and similarly with `JsonGenerator`
 
 Currently, following things are likely to cause problems:
 
-* Enum types will not yet work as expected
 * More advanced features will probably not work well. This includes:
  * Polymorphic type handling
  * Object identity
