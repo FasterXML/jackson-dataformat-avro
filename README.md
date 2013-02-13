@@ -16,11 +16,13 @@ Both serialization and deserialization work.
 
 To use this extension on Maven-based projects, use following dependency:
 
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-avro</artifactId>
-      <version>2.1.1</version>
-    </dependency>
+```xml
+<dependency>
+  <groupId>com.fasterxml.jackson.dataformat</groupId>
+  <artifactId>jackson-dataformat-avro</artifactId>
+  <version>2.1.1</version>
+</dependency>
+```
 
 # Usage
 
@@ -34,19 +36,21 @@ So the first step is to get an Avro Schema. Currently this means that you need t
 
 One way to do this is:
 
-    // note: AvroSchema is Jackson type that wraps "native" Avro Schema object:
+```java
+// note: AvroSchema is Jackson type that wraps "native" Avro Schema object:
 
-    String SCHEMA_JSON = ""{\n"
-            +"\"type\": \"record\",\n"
-            +"\"name\": \"Employee\",\n"
-            +"\"fields\": [\n"
-            +" {\"name\": \"name\", \"type\": \"string\"},\n"
-            +" {\"name\": \"age\", \"type\": \"int\"},\n"
-            +" {\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}},\n"
-            +" {\"name\": \"boss\", \"type\": [\"Employee\",\"null\"]}\n"
-            +"]}";
-    Schema raw = new Schema.Parser().setValidate(true).parse(SCHEMA_JSON);
-    AvroSchema schema = new AvroSchema(raw);
+String SCHEMA_JSON = ""{\n"
+        +"\"type\": \"record\",\n"
+        +"\"name\": \"Employee\",\n"
+        +"\"fields\": [\n"
+        +" {\"name\": \"name\", \"type\": \"string\"},\n"
+        +" {\"name\": \"age\", \"type\": \"int\"},\n"
+        +" {\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}},\n"
+        +" {\"name\": \"boss\", \"type\": [\"Employee\",\"null\"]}\n"
+        +"]}";
+Schema raw = new Schema.Parser().setValidate(true).parse(SCHEMA_JSON);
+AvroSchema schema = new AvroSchema(raw);
+```
 
 ## Creating ObjectMapper
 
@@ -54,33 +58,41 @@ One way to do this is:
 
 Usage is as with basic `JsonFactory`; most commonly you will just construct a standard `ObjectMapper` with `com.fasterxml.jackson.dataformat.avro.AvroFactory`, like so:
 
-    ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+```java
+ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+```
 
 ## Reading Avro data
 
 Assuming you have the `schema`, from above, and a POJO definition like:
 
-    public class Employee
-    {
-        public String name;
-        public int age;
-        public String[] emails;
-        public Employee boss;
-    }
+```java
+public class Employee
+{
+    public String name;
+    public int age;
+    public String[] emails;
+    public Employee boss;
+}
+```
 
 you can actually use data-binding like so:
 
-    byte[] avroData = ... ; // or find an InputStream
-    Employee empl = mapper.reader(Employee.class)
-       .with(schema)
-       .readValue(avroData);
+```java
+byte[] avroData = ... ; // or find an InputStream
+Employee empl = mapper.reader(Employee.class)
+   .with(schema)
+   .readValue(avroData);
+```
 
 ## Writing avro data
 
 Writing Avro-encoded data follows similar pattern:
 
-    byte[] avroData = mapper.writer(schema)
-       .writeValueAsBytes(empl);
+```java
+byte[] avroData = mapper.writer(schema)
+   .writeValueAsBytes(empl);
+```
 
 and that's about it, for now.
 
@@ -88,13 +100,15 @@ and that's about it, for now.
 
 You can also just use underlying `AvroFactory` and parser it produces, for event-based processing:
 
-    AvroFactory factory = new AvroFactory();
-    JsonParser parser = factory.createParser(avroBytes);
-    // but note: Schema is NOT optional, regardless:
-    parser.setSchema(schema);
-    while (parser.nextToken() != null) {
-      // do something!
-    }
+```java
+AvroFactory factory = new AvroFactory();
+JsonParser parser = factory.createParser(avroBytes);
+// but note: Schema is NOT optional, regardless:
+parser.setSchema(schema);
+while (parser.nextToken() != null) {
+  // do something!
+}
+```
 
 and similarly with `JsonGenerator`
 
