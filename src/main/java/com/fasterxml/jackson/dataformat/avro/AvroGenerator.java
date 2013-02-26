@@ -56,7 +56,7 @@ public class AvroGenerator extends GeneratorBase
 
     /**
      * Bit flag composed of bits that indicate which
-     * {@link org.codehaus.jackson.smile.SmileGenerator.Feature}s
+     * {@link org.codehaus.jackson.dataformat.avro.AvroGenerator.Feature}s
      * are enabled.
      */
     protected int _avroFeatures;
