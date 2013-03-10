@@ -137,7 +137,7 @@ public abstract class AvroParser extends ParserBase
 
     @Override
     public Version version() {
-        return ModuleVersion.instance.version();
+        return PackageVersion.VERSION;
     }
 
     /*

@@ -122,7 +122,7 @@ public class AvroGenerator extends GeneratorBase
 
     @Override
     public Version version() {
-        return ModuleVersion.instance.version();
+        return PackageVersion.VERSION;
     }
 
     /*

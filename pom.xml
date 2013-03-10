@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.fasterxml</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>4</version>
+    <version>8</version>
   </parent>
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
@@ -35,16 +35,12 @@ abstractions.
     <url>http://github.com/FasterXML/jackson-dataformat-avro</url>    
     <tag>HEAD</tag>
   </scm>
-  <developers>
-        <developer>
-            <id>tatu</id>
-            <name>Tatu Saloranta</name>
-            <email>tatu@fasterxml.com</email>
-        </developer>
-  </developers>
 
   <properties>
     <jackson.core.version>2.2.0-SNAPSHOT</jackson.core.version>
+    <!-- Generate PackageVersion.java into this directory. -->
+    <packageVersion.dir>com/fasterxml/jackson/dataformat/avro</packageVersion.dir>
+    <packageVersion.package>com.fasterxml.jackson.dataformat.avro</packageVersion.package>
     <!--  this module is 1.6 only -->
     <javac.src.version>1.6</javac.src.version>
     <javac.target.version>1.6</javac.target.version>
@@ -91,12 +87,17 @@ abstractions.
 
 
   <build>
-  <!-- need to enable filtering to add version info -->
-     <resources>
-       <resource>
-        <directory>${basedir}/src/main/resources</directory>
-         <filtering>true</filtering>
-      </resource>
-     </resources>
+    <plugins>
+      <plugin><!-- Inherited from oss-base. Generate PackageVersion.java.-->
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>process-packageVersion</id>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>
