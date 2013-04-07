@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.format.InputAccessor;
 import com.fasterxml.jackson.core.format.MatchStrength;
 import com.fasterxml.jackson.core.io.IOContext;
+
 import com.fasterxml.jackson.dataformat.avro.deser.AvroParserImpl;
 
 public class AvroFactory extends JsonFactory
@@ -75,9 +76,13 @@ public class AvroFactory extends JsonFactory
      */
     
     @Override
-    public String getFormatName()
-    {
+    public String getFormatName() {
         return FORMAT_NAME_AVRO;
+    }
+
+    @Override
+    public boolean canUseSchema(FormatSchema schema) {
+        return (schema instanceof AvroSchema);
     }
     
     /**
@@ -144,8 +149,6 @@ public class AvroFactory extends JsonFactory
     /**
      * Method for enabling or disabling specified generator feature
      * (check {@link AvroGenerator.Feature} for list of features)
-     *
-     * @since 1.2
      */
     public final AvroFactory configure(AvroGenerator.Feature f, boolean state) {
         if (state) {
