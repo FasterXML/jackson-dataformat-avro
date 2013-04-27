@@ -34,9 +34,9 @@ public class AvroFactory extends JsonFactory
     /**********************************************************
      */
 
-    protected int _avroParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
+    protected int _avroParserFeatures;
 
-    protected int _avroGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
+    protected int _avroGeneratorFeatures;
     
     /*
     /**********************************************************
