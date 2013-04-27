@@ -1,17 +1,17 @@
 Project: jackson-dataformat-avro
 Jackson module that supports using Jackson on data encoded using Avro format.
 
-Version: 2.2.0 (22-Apr-2013)
+Version: 2.2.1 (xx-May-2013)
 
-New minor version.
-
-Changes:
-
-* Uses new Bean property introspection for better mapping of data types.
+- Fixed issue with AvroFactory.copy()
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
+
+2.2.0 (22-Apr-2013)
+
+* Uses new Bean property introspection for better mapping of data types.
 
 2.1.1 (12-Nov-2012)
 

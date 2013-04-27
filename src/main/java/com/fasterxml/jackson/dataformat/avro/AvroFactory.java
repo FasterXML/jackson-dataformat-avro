@@ -56,7 +56,42 @@ public class AvroFactory extends JsonFactory
      */
     public AvroFactory() { this(null); }
 
-    public AvroFactory(ObjectCodec oc) { super(oc); }
+    public AvroFactory(ObjectCodec oc)
+    {
+        super(oc);
+        _avroParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
+        _avroGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
+    }
+
+    protected AvroFactory(AvroFactory src, ObjectCodec oc)
+    {
+        super(src, oc);
+        _avroParserFeatures = src._avroParserFeatures;
+        _avroGeneratorFeatures = src._avroGeneratorFeatures;
+    }
+
+    @Override
+    public AvroFactory copy()
+    {
+        _checkInvalidCopy(AvroFactory.class);
+        return new AvroFactory(this, null);
+    }
+
+    /*
+    /**********************************************************
+    /* Serializable overrides
+    /**********************************************************
+     */
+
+    /**
+     * Method that we need to override to actually make restoration go
+     * through constructors etc.
+     * Also: must be overridden by sub-classes as well.
+     */
+    @Override
+    protected Object readResolve() {
+        return new AvroFactory(this, _objectCodec);
+    }
 
     /*                                                                                       
     /**********************************************************                              

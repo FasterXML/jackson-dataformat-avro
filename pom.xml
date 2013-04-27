@@ -37,13 +37,10 @@ abstractions.
   </scm>
 
   <properties>
-    <jackson.core.version>2.2.0</jackson.core.version>
+    <jackson.core.version>2.2.1-SNAPSHOT</jackson.core.version>
     <!-- Generate PackageVersion.java into this directory. -->
     <packageVersion.dir>com/fasterxml/jackson/dataformat/avro</packageVersion.dir>
     <packageVersion.package>${project.groupId}.avro</packageVersion.package>
-    <!--  this module is 1.6 only -->
-    <javac.src.version>1.6</javac.src.version>
-    <javac.target.version>1.6</javac.target.version>
     <!--
      | Configuration properties for the OSGi maven-bundle-plugin
     -->
