@@ -1,7 +1,5 @@
 Project: jackson-dataformat-avro
-Jackson module that supports using Jackson on data encoded using Avro format.
-
-Version: 2.2.1 (xx-May-2013)
+Version: 2.2.1 (03-May-2013)
 
 - Fixed issue with AvroFactory.copy()
 
