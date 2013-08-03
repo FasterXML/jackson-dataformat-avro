@@ -88,18 +88,6 @@ public class RecordVisitor
         _fields.add(new Schema.Field(name, schema, null, null));
     }
 
-    @Override
-    @Deprecated
-    public void property(String name) throws JsonMappingException {
-        AvroSchemaHelper.throwUnsupported();
-    }
-    
-    @Override
-    @Deprecated
-    public void optionalProperty(String name) throws JsonMappingException {
-        AvroSchemaHelper.throwUnsupported();
-    }
-
     /*
     /**********************************************************************
     /* Internal methods
