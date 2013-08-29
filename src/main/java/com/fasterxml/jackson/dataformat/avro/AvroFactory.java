@@ -79,6 +79,18 @@ public class AvroFactory extends JsonFactory
 
     /*
     /**********************************************************
+    /* Capability introspection
+    /**********************************************************
+     */
+
+    // Yes, Avro is strictly positional based on schema
+    @Override
+    public boolean requiresPropertyOrdering() {
+        return true;
+    }
+    
+    /*
+    /**********************************************************
     /* Serializable overrides
     /**********************************************************
      */
