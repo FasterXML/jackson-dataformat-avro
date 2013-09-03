@@ -10,6 +10,7 @@
   <artifactId>jackson-dataformat-avro</artifactId>
   <name>Jackson-dataformat-Avro</name>
   <version>2.3.0-SNAPSHOT</version>
+  <packaging>bundle</packaging>
   <description>Support for reading and writing AVRO-encoded data via Jackson
 abstractions.
   </description>
