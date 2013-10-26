@@ -309,7 +309,14 @@ public abstract class AvroParser extends ParserBase
         if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
             ctxt = ctxt.getParent();
         }
-        ctxt.setCurrentName(name);
+        /* 24-Sep-2013, tatu: Unfortunate, but since we did not expose exceptions,
+         *   need to wrap this here
+         */
+        try {
+            ctxt.setCurrentName(name);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
     
     @Override
@@ -347,6 +354,7 @@ public abstract class AvroParser extends ParserBase
             if (_currToken != JsonToken.VALUE_STRING) {
                 _reportError("Current token ("+_currToken+") not VALUE_STRING, can not access as binary");
             }
+            @SuppressWarnings("resource")
             ByteArrayBuilder builder = _getByteArrayBuilder();
             _decodeBase64(getText(), builder, variant);
             _binaryValue = builder.toByteArray();
