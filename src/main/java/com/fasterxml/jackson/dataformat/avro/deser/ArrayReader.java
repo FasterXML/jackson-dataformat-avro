@@ -18,7 +18,7 @@ abstract class ArrayReader extends AvroStructureReader
     protected final AvroParserImpl _parser;
 
     protected int _state;
-    protected long _index;
+//    protected long _index;
     protected long _count;
 
     protected String _currentName;
@@ -94,7 +94,7 @@ abstract class ArrayReader extends AvroStructureReader
                     break;
                 }
                 if ((_count = _decoder.arrayNext()) >= 0L) { // got more data
-                    _index = 0L;
+                    _index = 0;
                 }
                 // otherwise, we are done: fall through
             case STATE_END:
@@ -148,7 +148,7 @@ abstract class ArrayReader extends AvroStructureReader
                     break;
                 }
                 if ((_count = _decoder.arrayNext()) >= 0L) { // got more data
-                    _index = 0L;
+                    _index = 0;
                 }
                 // otherwise, we are done: fall through
             case STATE_END:

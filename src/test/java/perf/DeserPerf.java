@@ -3,7 +3,6 @@ package perf;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.DecoderFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -15,7 +14,7 @@ public final class DeserPerf extends PerfBase
 {
     private final int REPS;
 
-    private final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
+//    private final DecoderFactory DECODER_FACTORY = DecoderFactory.get();
     
     private final GenericDatumReader<GenericRecord> READER;
     

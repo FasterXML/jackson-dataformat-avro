@@ -23,7 +23,7 @@ public final class MapReader extends AvroStructureReader
     private String _currentName;
     
     protected int _state;
-    protected long _index;
+//    protected long _index;
     protected long _count;
     
     public MapReader(AvroScalarReader reader) {

@@ -22,7 +22,7 @@ final class RecordReader extends AvroStructureReader
     private String _currentName;
     
     protected int _state;
-    protected int _index;
+//    protected int _index;
     protected final int _count;
     
     public RecordReader(AvroFieldWrapper[] fieldReaders) {

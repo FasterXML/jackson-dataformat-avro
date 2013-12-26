@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.format.InputAccessor;
 import com.fasterxml.jackson.core.format.MatchStrength;
 import com.fasterxml.jackson.core.io.IOContext;
-
 import com.fasterxml.jackson.dataformat.avro.deser.AvroParserImpl;
 
 public class AvroFactory extends JsonFactory
@@ -238,11 +237,13 @@ public class AvroFactory extends JsonFactory
     /**********************************************************
      */
 
+    @SuppressWarnings("resource")
     @Override
     public AvroParser createParser(File f)
         throws IOException, JsonParseException
     {
-        return _createParser(new FileInputStream(f), _createContext(f, true));
+        FileInputStream in = new FileInputStream(f);
+        return _createParser(in, _createContext(f, true));
     }
 
     @Override

@@ -1,11 +1,15 @@
 Project: jackson-dataformat-avro
-Version: 2.3.0 (14-Nov-2013)
+Version: 2.3.1 (xx-Dec-2013)
 
-- Add 'requiresPropertyOrdering()'
+#1: Add `AvroMapper` for convenience
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
+
+2.3.0 (14-Nov-2013)
+
+- Add 'requiresPropertyOrdering()'
 
 2.2.3 (23-Aug-2013)
 2.2.2 (27-May-2013)
