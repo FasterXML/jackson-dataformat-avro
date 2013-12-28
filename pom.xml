@@ -23,7 +23,10 @@ abstractions.
   </scm>
 
   <properties>
-    <jackson.core.version>2.3.1</jackson.core.version>
+    <!-- no patch versions for annotations -->
+    <jackson.version.annotations>2.3.0</jackson.version.annotations>
+    <jackson.version.core>2.3.1</jackson.version.core>
+
     <!-- Generate PackageVersion.java into this directory. -->
     <packageVersion.dir>com/fasterxml/jackson/dataformat/avro</packageVersion.dir>
     <packageVersion.package>${project.groupId}.avro</packageVersion.package>
