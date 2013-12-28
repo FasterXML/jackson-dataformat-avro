@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.fasterxml</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>11</version>
+    <version>12</version>
   </parent>
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
@@ -23,7 +23,7 @@ abstractions.
   </scm>
 
   <properties>
-    <jackson.core.version>2.3.0</jackson.core.version>
+    <jackson.core.version>2.3.1</jackson.core.version>
     <!-- Generate PackageVersion.java into this directory. -->
     <packageVersion.dir>com/fasterxml/jackson/dataformat/avro</packageVersion.dir>
     <packageVersion.package>${project.groupId}.avro</packageVersion.package>
