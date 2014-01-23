@@ -1,11 +1,16 @@
 Project: jackson-dataformat-avro
-Version: 2.3.1 (28-Dec-2013)
+Version: 2.3.2 (xx-xxx-2014)
 
-#1: Add `AvroMapper` for convenience
+#5: Support byte[] fields
+ (reported by clarkbreyman@github)
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
+
+2.3.1 (28-Dec-2013)
+
+#1: Add `AvroMapper` for convenience
 
 2.3.0 (14-Nov-2013)
 

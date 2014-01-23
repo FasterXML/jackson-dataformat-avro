@@ -61,7 +61,7 @@ public abstract class AvroScalarReader
             throws IOException
         {
             ByteBuffer bb = parser.borrowByteBuffer();
-            decoder.readBytes(bb);
+            bb = decoder.readBytes(bb);
             return parser.setBytes(bb);
         }
     }

@@ -3,9 +3,11 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.avro.io.BinaryEncoder;
+
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -419,17 +421,19 @@ public class AvroGenerator extends GeneratorBase
             writeNull();
             return;
         }
-        _verifyValueWrite("write Binary value");
         // ok, better just Base64 encode as a String...
         if (offset > 0 || (offset+len) != data.length) {
             data = Arrays.copyOfRange(data, offset, offset+len);
         }
         final int end = offset+len;
+        // 22-Jan-2014, tatu: Looks like Avro requires ByteBuffer...
+        ByteBuffer bb;
         if (offset != 0 || end != data.length) {
-            _avroContext.writeValue(Arrays.copyOfRange(data, offset, end));
+            bb = ByteBuffer.wrap(data, offset, end);
         } else {
-            _avroContext.writeValue(data);
+            bb = ByteBuffer.wrap(data);
         }
+        _avroContext.writeValue(bb);
 
         //        String encoded = b64variant.encode(data);
 //        _writeScalar(encoded, "byte[]", STYLE_BASE64);
