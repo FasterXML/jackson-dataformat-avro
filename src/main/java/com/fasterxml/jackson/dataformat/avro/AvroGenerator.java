@@ -319,11 +319,12 @@ public class AvroGenerator extends GeneratorBase
             _reportError("Can not write END_OBJECT after writing FIELD_NAME but not value");
         }
         _avroContext = _avroContext.getParent();
+
         if (_avroContext.inRoot() && !_complete) {
             _complete();
         }
     }
-    
+
     /*
     /**********************************************************
     /* Output method implementations, textual
@@ -446,26 +447,22 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public void writeBoolean(boolean state) throws IOException, JsonGenerationException
-    {
+    public void writeBoolean(boolean state) throws IOException, JsonGenerationException {
         _avroContext.writeValue(state ? Boolean.TRUE : Boolean.FALSE);
     }
 
     @Override
-    public void writeNull() throws IOException, JsonGenerationException
-    {
+    public void writeNull() throws IOException, JsonGenerationException {
         _avroContext.writeValue(null);
     }
 
     @Override
-    public void writeNumber(int i) throws IOException, JsonGenerationException
-    {
+    public void writeNumber(int i) throws IOException, JsonGenerationException {
         _avroContext.writeValue(Integer.valueOf(i));
     }
 
     @Override
-    public void writeNumber(long l) throws IOException, JsonGenerationException
-    {
+    public void writeNumber(long l) throws IOException, JsonGenerationException {
         _avroContext.writeValue(Long.valueOf(l));
     }
 
@@ -480,14 +477,12 @@ public class AvroGenerator extends GeneratorBase
     }
     
     @Override
-    public void writeNumber(double d) throws IOException, JsonGenerationException
-    {
+    public void writeNumber(double d) throws IOException, JsonGenerationException {
         _avroContext.writeValue(Double.valueOf(d));
     }    
 
     @Override
-    public void writeNumber(float f) throws IOException, JsonGenerationException
-    {
+    public void writeNumber(float f) throws IOException, JsonGenerationException {
         _avroContext.writeValue(Float.valueOf(f));
     }
 
@@ -502,8 +497,7 @@ public class AvroGenerator extends GeneratorBase
     }
 
     @Override
-    public void writeNumber(String encodedValue) throws IOException,JsonGenerationException, UnsupportedOperationException
-    {
+    public void writeNumber(String encodedValue) throws IOException, UnsupportedOperationException {
         throw new UnsupportedOperationException("Can not write 'untyped' numbers");
     }
 
@@ -514,9 +508,7 @@ public class AvroGenerator extends GeneratorBase
      */
     
     @Override
-    protected final void _verifyValueWrite(String typeMsg)
-        throws IOException, JsonGenerationException
-    {
+    protected final void _verifyValueWrite(String typeMsg) throws IOException, JsonGenerationException {
         _throwInternal();
     }
 

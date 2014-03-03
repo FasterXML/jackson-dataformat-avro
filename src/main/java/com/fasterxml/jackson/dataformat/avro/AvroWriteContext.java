@@ -3,11 +3,14 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.io.IOException;
 
 import org.apache.avro.Schema;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.*;
 import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.ser.ArrayWriteContext;
+import com.fasterxml.jackson.dataformat.avro.ser.MapWriteContext;
 import com.fasterxml.jackson.dataformat.avro.ser.ObjectWriteContext;
 
 public abstract class AvroWriteContext
@@ -49,8 +52,8 @@ public abstract class AvroWriteContext
         return NullContext.instance;
     }
     
-    public abstract AvroWriteContext createChildArrayContext();
-    public abstract AvroWriteContext createChildObjectContext();
+    public abstract AvroWriteContext createChildArrayContext() throws JsonMappingException;
+    public abstract AvroWriteContext createChildObjectContext() throws JsonMappingException;
     
     @Override
     public final AvroWriteContext getParent() { return _parent; }
@@ -67,6 +70,11 @@ public abstract class AvroWriteContext
 
     public abstract void writeValue(Object value);
 
+    /**
+     * Accessor called to link data being built with resulting object.
+     */
+    public abstract Object rawValue();
+    
     public void complete(BinaryEncoder encoder) throws IOException {
         throw new IllegalStateException("Can not be called on "+getClass().getName());
     }
@@ -90,11 +98,13 @@ public abstract class AvroWriteContext
     }
 
     // // // Shared helper methods
-    
-    protected GenericRecord _createRecord(Schema schema)
+
+    protected GenericRecord _createRecord(Schema schema) throws JsonMappingException
     {
         // Quick check: if type is Union, need to find actual record type...
-        if (schema.getType() == Schema.Type.UNION) {
+        //   System.err.println("Create schema for type ("+schema.getType()+"), "+schema);        
+        Type type = schema.getType();
+        if (type == Schema.Type.UNION) {
             Schema match = null;
             for (Schema s : schema.getTypes()) {
                 if (s.getType() == Schema.Type.RECORD) {
@@ -109,8 +119,18 @@ public abstract class AvroWriteContext
                 throw new IllegalStateException("No Record type found in union type: "+schema);
             }
             schema = match;
+        } else if (type == Schema.Type.MAP) {
+            throw new IllegalStateException("Should never be called for elements of type MAP");
         }
-        return new GenericData.Record(schema);
+        /* 03-Mar-2014, tatu: Bit nasty, but looks like higher level code has a slightly
+         *   better chance to react on these problems if we expose more refined
+         *   Exception.
+         */
+        try {
+            return new GenericData.Record(schema);
+        } catch (RuntimeException e) {
+            throw new JsonMappingException("Failed to create Record type from "+type, e);
+        }
     }
     
     protected GenericArray<Object> _createArray(Schema schema)
@@ -134,6 +154,14 @@ public abstract class AvroWriteContext
         return new GenericData.Array<Object>(8, schema);
     }
 
+    protected AvroWriteContext _createObjectContext(Schema schema) throws JsonMappingException
+    {
+        if (schema.getType() == Schema.Type.MAP) {
+            return new MapWriteContext(this, _generator, schema);
+        }
+        return new ObjectWriteContext(this, _generator, _createRecord(schema));
+    }
+    
     /*
     /**********************************************************
     /* Implementations
@@ -149,6 +177,9 @@ public abstract class AvroWriteContext
             super(TYPE_ROOT, null, null, null);
         }
 
+        @Override
+        public Object rawValue() { return null; }
+        
         @Override
         public final AvroWriteContext createChildArrayContext() {
             _reportError();
@@ -187,9 +218,12 @@ public abstract class AvroWriteContext
         protected RootContext(AvroGenerator generator, Schema schema) {
             super(TYPE_ROOT, null, generator, schema);
         }
+
+        @Override
+        public Object rawValue() { return _rootValue; }
         
         @Override
-        public final AvroWriteContext createChildArrayContext()
+        public final AvroWriteContext createChildArrayContext() throws JsonMappingException
         {
             // verify that root type is array (or compatible)
             switch (_schema.getType()) {
@@ -206,7 +240,7 @@ public abstract class AvroWriteContext
         }
         
         @Override
-        public final AvroWriteContext createChildObjectContext()
+        public final AvroWriteContext createChildObjectContext() throws JsonMappingException
         {
             // verify that root type is record (or compatible)
             switch (_schema.getType()) {

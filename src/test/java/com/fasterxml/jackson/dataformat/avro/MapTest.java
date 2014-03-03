@@ -42,7 +42,7 @@ public class MapTest extends AvroTestBase
         byte[] bytes = out.toByteArray();
         assertNotNull(bytes);
 
-        assertEquals(1, bytes.length); // measured to be current exp size
+        assertEquals(14, bytes.length); // measured to be current exp size
 
         // and then back
         Container output = mapper.reader(Container.class).with(schema)
