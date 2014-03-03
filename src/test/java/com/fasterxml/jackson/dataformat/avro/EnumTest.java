@@ -18,7 +18,7 @@ public class EnumTest extends AvroTestBase
     protected static class Employee {
         public Gender gender;
     }
-    
+
     public void testSimple() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper(new AvroFactory());
