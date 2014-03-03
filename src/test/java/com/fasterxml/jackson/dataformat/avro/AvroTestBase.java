@@ -36,35 +36,30 @@ public abstract class AvroTestBase extends TestCase
         public Employee boss;
     }
     
-    protected AvroTestBase() {
-    }
+    protected AvroTestBase() { }
 
-    protected AvroSchema getEmployeeSchema()
-    {
+    protected AvroSchema getEmployeeSchema() {
         if (_employeeSchema == null) {
             _employeeSchema = parseSchema(EMPLOYEE_SCHEMA_JSON);
         }
         return _employeeSchema;
     }
 
-    protected AvroSchema parseSchema(String schemaJson)
-    {
+    protected AvroSchema parseSchema(String schemaJson) {
         return new AvroSchema(new Schema.Parser().setValidate(true).parse(schemaJson));        
     }
-    
+
     protected ObjectMapper getMapper() {
         if (MAPPER == null) {
             MAPPER = new ObjectMapper(new AvroFactory());
         }
         return MAPPER;
     }
-    
+
     protected byte[] toAvro(Employee empl) throws IOException {
         return toAvro(empl, getMapper());
     }
-    
-    protected byte[] toAvro(Employee empl, ObjectMapper mapper) throws IOException
-    {
+    protected byte[] toAvro(Employee empl, ObjectMapper mapper) throws IOException {
         return mapper.writer(getEmployeeSchema()).writeValueAsBytes(empl);
     }
 }

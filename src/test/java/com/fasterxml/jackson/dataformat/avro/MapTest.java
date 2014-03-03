@@ -1,7 +1,9 @@
 package com.fasterxml.jackson.dataformat.avro;
 
+import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MapTest extends AvroTestBase
@@ -11,7 +13,8 @@ public class MapTest extends AvroTestBase
             +"\"name\": \"Container\",\n"
             +"\"fields\": [\n"
             +" {\"name\": \"stuff\", \"type\":{\n"
-            +"    \"type\":\"map\", \"values\":[\"string\",\"null\"]"
+//            +"    \"type\":\"map\", \"values\":[\"string\",\"null\"]"
+            +"    \"type\":\"map\", \"values\": \"string\" "
             +" }}"
             +"]}"
             ;
@@ -28,7 +31,15 @@ public class MapTest extends AvroTestBase
         input.stuff.put("foo", "bar");
         input.stuff.put("a", "b");
 
-        byte[] bytes = mapper.writer(schema).writeValueAsBytes(input);
+        /* Clumsy, but turns out that failures from convenience methods may
+         * get masked due to auto-close. Hence this trickery.
+         */
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        JsonGenerator gen = mapper.getFactory().createGenerator(out);
+        mapper.writer(schema).writeValue(gen, input);
+        gen.close();
+        byte[] bytes = out.toByteArray();
         assertNotNull(bytes);
 
         assertEquals(1, bytes.length); // measured to be current exp size
