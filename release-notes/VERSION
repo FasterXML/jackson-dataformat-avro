@@ -1,12 +1,17 @@
 Project: jackson-dataformat-avro
-Version: 2.3.2 (01-Mar-2014)
+Version: 2.3.3 (xx-xxx-2014)
 
-#5: Support byte[] fields
- (reported by clarkbreyman@github)
+#6: Nested Map type fields do not work
+ (reported by cresny@github)
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
+
+2.3.2 (01-Mar-2014)
+
+#5: Support byte[] fields
+ (reported by clarkbreyman@github)
 
 2.3.1 (28-Dec-2013)
 

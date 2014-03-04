@@ -51,7 +51,6 @@ public class MapTest extends AvroTestBase
         assertNotNull(output.stuff);
         assertEquals(2, output.stuff.size());
         assertEquals("bar", output.stuff.get("foo"));
-        assertEquals("a", output.stuff.get("b"));
+        assertEquals("b", output.stuff.get("a"));
     }
-    
 }

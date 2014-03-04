@@ -65,6 +65,7 @@ public final class MapReader extends AvroStructureReader
             return JsonToken.START_OBJECT;
         case STATE_NAME:
             if (_index < _count) {
+                _state = STATE_VALUE;
                 _currentName = _decoder.readString();
                 return JsonToken.FIELD_NAME;
             }

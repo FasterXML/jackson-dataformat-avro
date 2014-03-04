@@ -122,14 +122,14 @@ public class AvroReaderFactory
 
     private AvroStructureReader createMapReader(Schema schema)
     {
-        Schema elementType = schema.getElementType();
+        Schema elementType = schema.getValueType();
         AvroScalarReader dec = createDecoder(elementType);
         if (dec != null) {
             return new MapReader(dec);
         }
         return new MapReader(createReader(elementType));
     }
-    
+
     private AvroStructureReader createRecordReader(Schema schema)
     {
         final List<Schema.Field> fields = schema.getFields();
@@ -142,7 +142,7 @@ public class AvroReaderFactory
         }
         return reader;
     }
-    
+
     private AvroStructureReader createUnionReader(Schema schema)
     {
         final List<Schema> types = schema.getTypes();
