@@ -102,30 +102,13 @@ public abstract class AvroWriteContext
     protected GenericRecord _createRecord(Schema schema) throws JsonMappingException
     {
         // Quick check: if type is Union, need to find actual record type...
-        //   System.err.println("Create schema for type ("+schema.getType()+"), "+schema);        
         Type type = schema.getType();
         if (type == Schema.Type.UNION) {
-            Schema match = null;
-            for (Schema s : schema.getTypes()) {
-                if (s.getType() == Schema.Type.RECORD) {
-                    if (match != null) {
-                        throw new IllegalStateException("Multiple Record types, can not figure out which to use for: "
-                                +schema);
-                    }
-                    match = s;
-                }
-            }
-            if (match == null) {
-                throw new IllegalStateException("No Record type found in union type: "+schema);
-            }
-            schema = match;
-        } else if (type == Schema.Type.MAP) {
-            throw new IllegalStateException("Should never be called for elements of type MAP");
+            schema = _recordOrMapFromUnion(schema);
         }
-        /* 03-Mar-2014, tatu: Bit nasty, but looks like higher level code has a slightly
-         *   better chance to react on these problems if we expose more refined
-         *   Exception.
-         */
+        if (type == Schema.Type.MAP) {
+            throw new IllegalStateException("_createRecord should never be called for elements of type MAP");
+        }
         try {
             return new GenericData.Record(schema);
         } catch (RuntimeException e) {
@@ -156,10 +139,32 @@ public abstract class AvroWriteContext
 
     protected AvroWriteContext _createObjectContext(Schema schema) throws JsonMappingException
     {
+        if (schema.getType() == Schema.Type.UNION) {
+            schema = _recordOrMapFromUnion(schema);
+        }
         if (schema.getType() == Schema.Type.MAP) {
             return new MapWriteContext(this, _generator, schema);
         }
         return new ObjectWriteContext(this, _generator, _createRecord(schema));
+    }
+
+    protected Schema _recordOrMapFromUnion(Schema unionSchema)
+    {
+        Schema match = null;
+        for (Schema s : unionSchema.getTypes()) {
+            Schema.Type type = s.getType();
+            if (type == Schema.Type.RECORD || type == Schema.Type.MAP) {
+                if (match != null) {
+                    throw new IllegalStateException("Multiple Record and/or Map types, can not figure out which to use for: "
+                            +unionSchema);
+                }
+                match = s;
+            }
+        }
+        if (match == null) {
+            throw new IllegalStateException("No Record or Map type found in union type: "+unionSchema);
+        }
+        return match;
     }
     
     /*
