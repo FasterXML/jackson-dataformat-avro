@@ -96,6 +96,28 @@ byte[] avroData = mapper.writer(schema)
 
 and that's about it, for now.
 
+## Generating Avro Schema from POJO definition
+
+Ok but wait -- you do not have to START with an Avro Schema. This module can
+actually generate schema for you, starting with POJO definition(s)!
+Here's how
+
+```java
+public class POJO {
+  // your typical, Jackson-compatible POJO (with or without annotations)
+}
+
+ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+AvroSchemaGenerator gen = new AvroSchemaGenerator();
+mapper.acceptJsonFormatVisitor(RootType.class, gen);
+AvroSchema schemaWrapper = gen.getGeneratedSchema();
+
+org.apache.avro.Schema avroSchema = schemaWrapper.getAvroSchema();
+String asJson = avroSchema.toString(true);
+```
+
+So: you can generate native Avro Schema object very easily.
+
 ## Ok, so you REALLY want Streaming API
 
 You can also just use underlying `AvroFactory` and parser it produces, for event-based processing:

@@ -173,6 +173,10 @@ public abstract class AvroWriteContext
     /**********************************************************
      */
 
+    /**
+     * Virtual context implementation used when there is no real root
+     * context available.
+     */
     private final static class NullContext
         extends AvroWriteContext
     {
@@ -217,6 +221,9 @@ public abstract class AvroWriteContext
     {
         /**
          * We need to keep reference to the root value here.
+         *<p>
+         * TODO: What about Map values at root? Avro codec does not seem
+         * able to support it via Generic API.
          */
         protected GenericContainer _rootValue;
         
@@ -252,6 +259,8 @@ public abstract class AvroWriteContext
             case RECORD:
             case UNION: // maybe
                 break;
+            case MAP:
+                throw new UnsupportedOperationException("Root-level Maps not supported: Avro Codec has no way to create these");
             default:
                 throw new IllegalStateException("Can not write START_OBJECT; schema type is "
                         +_schema.getType());
