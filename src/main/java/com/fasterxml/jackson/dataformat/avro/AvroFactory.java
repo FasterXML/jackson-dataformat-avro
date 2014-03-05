@@ -60,6 +60,14 @@ public class AvroFactory extends JsonFactory
         super(oc);
         _avroParserFeatures = DEFAULT_SMILE_PARSER_FEATURE_FLAGS;
         _avroGeneratorFeatures = DEFAULT_SMILE_GENERATOR_FEATURE_FLAGS;
+
+        /* 04-Mar-2013, tatu: Content auto-closing is unfortunately a feature
+         *    that works poorly with Avro error reporting, and generally
+         *    manages to replace actual failure with a bogus one when
+         *    missing "END_OBJECT"s (etc) are called. So let's default
+         *    it to disabled, unlike for most JsonFactory sub-types.
+         */
+        disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
     }
 
     protected AvroFactory(AvroFactory src, ObjectCodec oc)

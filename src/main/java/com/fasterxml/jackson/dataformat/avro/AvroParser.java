@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.json.JsonReadContext;
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
+import com.fasterxml.jackson.dataformat.avro.deser.AvroReadContext;
 import com.fasterxml.jackson.dataformat.avro.deser.MissingReader;
 
 /**

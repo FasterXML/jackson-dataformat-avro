@@ -5,12 +5,17 @@ import org.apache.avro.generic.GenericRecord;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
-import com.fasterxml.jackson.dataformat.avro.AvroWriteContext;
 
 public final class ObjectWriteContext
     extends KeyValueContext
 {
     protected final GenericRecord _record;
+
+    /**
+     * Definition of property that is to be written next, if any;
+     * null if property is to be skipped.
+     */
+    protected Schema.Field _nextField;
     
     public ObjectWriteContext(AvroWriteContext parent, AvroGenerator generator,
             GenericRecord record)
@@ -26,7 +31,11 @@ public final class ObjectWriteContext
     public final AvroWriteContext createChildArrayContext()
     {
         _verifyValueWrite();
-        AvroWriteContext child = new ArrayWriteContext(this, _generator, _createArray(_findField().schema()));
+        Schema.Field field = _findField();
+        if (field == null) { // unknown, to ignore
+            return new NopWriteContext(this, _generator);
+        }
+        AvroWriteContext child = new ArrayWriteContext(this, _generator, _createArray(field.schema()));
         _record.put(_currentName, child.rawValue());
         return child;
     }
@@ -35,16 +44,34 @@ public final class ObjectWriteContext
     public final AvroWriteContext createChildObjectContext() throws JsonMappingException
     {
         _verifyValueWrite();
-        Schema.Field f = _findField();
-        AvroWriteContext child = _createObjectContext(f.schema());
+        Schema.Field field = _findField();
+        if (field == null) { // unknown, to ignore
+            return new NopWriteContext(this, _generator);
+        }
+        AvroWriteContext child = _createObjectContext(field.schema());
         _record.put(_currentName, child.rawValue());
         return child;
     }
 
     @Override
-    public void writeValue(Object value) {
+    public final boolean writeFieldName(String name)
+    {
+        _currentName = name;
+        _expectValue = true;
+        Schema.Field field = _schema.getField(name);
+        if (field == null) {
+            if (!_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
+                throw new IllegalStateException("No field named '"+name+"'");
+            }
+        }
+        _nextField = field;
+        return true;
+    }
+    
+    @Override
+    public void writeValue(Object value) throws JsonMappingException {
         _verifyValueWrite();
-        _record.put(_currentName, value);
+        _record.put(_nextField.pos(), value);
     }
 
     protected Schema.Field _findField() {
@@ -53,7 +80,9 @@ public final class ObjectWriteContext
         }
         Schema.Field f = _schema.getField(_currentName);
         if (f == null) {
-            throw new IllegalStateException("No field named '"+_currentName+"'");
+            if (!_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
+                throw new IllegalStateException("No field named '"+_currentName+"'");
+            }
         }
         return f;
     }

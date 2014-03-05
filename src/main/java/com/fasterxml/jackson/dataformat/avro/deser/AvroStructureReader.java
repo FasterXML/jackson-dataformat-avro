@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 /**
  * Base class for handlers for Avro structured types (or, in case of

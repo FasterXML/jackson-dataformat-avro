@@ -11,6 +11,7 @@ import org.apache.avro.io.BinaryEncoder;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.dataformat.avro.ser.AvroWriteContext;
 
 public class AvroGenerator extends GeneratorBase
 {
@@ -18,7 +19,17 @@ public class AvroGenerator extends GeneratorBase
      * Enumeration that defines all togglable features for YAML generators
      */
     public enum Feature {
-        BOGUS(false) // placeholder
+        /**
+         * Feature that can be enabled to quietly ignore serialization of properties
+         * that can not be mapped to output schema: if enabled, trying to output
+         * properties that do not map result in such output calls being discarded;
+         * if disabled, an exception is thrown.
+         *<p>
+         * Feature is disabled by default.
+         * 
+         * @since 2.4
+         */
+        IGNORE_UNKWNOWN(false)
         ;
 
         protected final boolean _defaultState;

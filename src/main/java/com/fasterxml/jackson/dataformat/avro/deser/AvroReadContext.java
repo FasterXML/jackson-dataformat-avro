@@ -1,4 +1,4 @@
-package com.fasterxml.jackson.dataformat.avro;
+package com.fasterxml.jackson.dataformat.avro.deser;
 
 import java.io.IOException;
 

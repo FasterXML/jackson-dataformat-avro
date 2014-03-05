@@ -11,7 +11,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.avro.AvroParser;
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
 /**

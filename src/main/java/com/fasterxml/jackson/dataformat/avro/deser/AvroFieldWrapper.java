@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 public final class AvroFieldWrapper
 {

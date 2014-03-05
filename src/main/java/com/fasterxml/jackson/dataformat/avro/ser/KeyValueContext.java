@@ -3,7 +3,6 @@ package com.fasterxml.jackson.dataformat.avro.ser;
 import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
-import com.fasterxml.jackson.dataformat.avro.AvroWriteContext;
 
 /**
  * Shared base class for both Record- and Map-backed types.
@@ -26,14 +25,6 @@ abstract class KeyValueContext extends AvroWriteContext
     @Override
     public boolean canClose() {
         return !_expectValue;
-    }
-
-    @Override
-    public final boolean writeFieldName(String name)
-    {
-        _currentName = name;
-        _expectValue = true;
-        return true;
     }
     
     @Override

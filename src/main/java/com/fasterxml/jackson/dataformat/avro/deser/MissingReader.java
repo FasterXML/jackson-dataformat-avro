@@ -2,8 +2,6 @@ package com.fasterxml.jackson.dataformat.avro.deser;
 
 import com.fasterxml.jackson.core.JsonToken;
 
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
-
 public class MissingReader extends AvroReadContext
 {
     public final static MissingReader instance = new MissingReader();

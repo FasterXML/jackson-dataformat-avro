@@ -6,7 +6,6 @@ import org.apache.avro.io.BinaryDecoder;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 /**
  * Reader used in cases where union contains at least one non-scalar

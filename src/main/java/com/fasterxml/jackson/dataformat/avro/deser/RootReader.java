@@ -3,7 +3,6 @@ package com.fasterxml.jackson.dataformat.avro.deser;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.dataformat.avro.AvroReadContext;
 
 /**
  * Context used at root level; basically just a container

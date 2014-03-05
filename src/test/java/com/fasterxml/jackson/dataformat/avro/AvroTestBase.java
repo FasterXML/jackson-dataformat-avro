@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import junit.framework.TestCase;
 
@@ -61,5 +62,18 @@ public abstract class AvroTestBase extends TestCase
     }
     protected byte[] toAvro(Employee empl, ObjectMapper mapper) throws IOException {
         return mapper.writer(getEmployeeSchema()).writeValueAsBytes(empl);
+    }
+
+    protected void verifyException(Throwable e, String... matches)
+    {
+        String msg = e.getMessage();
+        String lmsg = (msg == null) ? "" : msg.toLowerCase();
+        for (String match : matches) {
+            String lmatch = match.toLowerCase();
+            if (lmsg.indexOf(lmatch) >= 0) {
+                return;
+            }
+        }
+        fail("Expected an exception with one of substrings ("+Arrays.asList(matches)+"): got one with message \""+msg+"\"");
     }
 }

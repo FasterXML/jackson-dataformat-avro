@@ -4,7 +4,6 @@ import org.apache.avro.generic.GenericArray;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
-import com.fasterxml.jackson.dataformat.avro.AvroWriteContext;
 
 public final class ArrayWriteContext
     extends AvroWriteContext

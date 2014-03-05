@@ -1,7 +1,12 @@
 package com.fasterxml.jackson.dataformat.avro;
 
+import java.io.ByteArrayOutputStream;
+
 import org.junit.Assert;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 
@@ -23,6 +28,18 @@ public class SimpleGenerationTest extends AvroTestBase
         public Binary(String n, byte[] v) {
             name = n;
             value = v;
+        }
+    }
+
+    // order such that missing field is in the middle
+    @JsonPropertyOrder({ "name", "number", "value" })
+    protected static class BinaryAndNumber extends Binary {
+        public int number;
+
+        public BinaryAndNumber(String name, int nr) {
+            super(name, null);
+            number = nr;
+            value = new byte[1];
         }
     }
     
@@ -50,13 +67,11 @@ public class SimpleGenerationTest extends AvroTestBase
         assertEquals(output.age, empl.age);
     }
 
-    public void testBinary() throws Exception
+    public void testBinaryOk() throws Exception
     {
-        Binary bin = new Binary("Foo", new byte[] { 1, 2, 3, 4 });
-        
         ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-
         AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
+        Binary bin = new Binary("Foo", new byte[] { 1, 2, 3, 4 });
         byte[] bytes = mapper.writer(schema).writeValueAsBytes(bin);
         assertEquals(9, bytes.length);
         assertNotNull(bytes);
@@ -65,5 +80,34 @@ public class SimpleGenerationTest extends AvroTestBase
         assertEquals("Foo", output.name);
         assertNotNull(output.value);
         Assert.assertArrayEquals(bin.value, output.value);
+    }
+
+    @SuppressWarnings("resource")
+    public void testIgnoringOfUnknown() throws Exception
+    {
+        AvroFactory af = new AvroFactory();
+        ObjectMapper mapper = new ObjectMapper(af);
+        // we can repurpose "Binary" from above for schema
+        AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
+        BinaryAndNumber input = new BinaryAndNumber("Bob", 15);
+        JsonGenerator gen = mapper.getFactory().createGenerator(new ByteArrayOutputStream());
+        try {
+             mapper.writer(schema).writeValue(gen, input);
+             fail("Should have thrown exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "no field named");
+        }
+
+        // But should be fine if (and only if!) we enable support for skipping
+        af.enable(AvroGenerator.Feature.IGNORE_UNKWNOWN);
+        gen = mapper.getFactory().createGenerator(new ByteArrayOutputStream());
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        mapper.writer(schema).writeValue(b, input);
+        byte[] bytes = b.toByteArray();
+        assertEquals(15, bytes.length);
+
+        // and should be able to get it back too
+        BinaryAndNumber output = mapper.readValue(bytes, BinaryAndNumber.class);
+        assertEquals("Bob", output.name);
     }
 }

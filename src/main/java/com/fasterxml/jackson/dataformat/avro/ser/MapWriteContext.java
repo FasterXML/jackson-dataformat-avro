@@ -7,7 +7,6 @@ import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
-import com.fasterxml.jackson.dataformat.avro.AvroWriteContext;
 
 /**
  * Alternative to {@link ObjectWriteContext} that needs to be used with
@@ -27,6 +26,14 @@ public final class MapWriteContext
     @Override
     public Object rawValue() { return _data; }
 
+    @Override
+    public final boolean writeFieldName(String name)
+    {
+        _currentName = name;
+        _expectValue = true;
+        return true;
+    }
+    
     @Override
     public final AvroWriteContext createChildArrayContext() {
         _verifyValueWrite();
