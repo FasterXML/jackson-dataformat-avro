@@ -40,12 +40,4 @@ abstract class KeyValueContext extends AvroWriteContext
         }
         sb.append('}');
     }
-
-    protected final void _verifyValueWrite()
-    {
-        if (!_expectValue) {
-            throw new IllegalStateException("Expecting FIELD_NAME, not value");
-        }
-        _expectValue = false;
-    }
 }

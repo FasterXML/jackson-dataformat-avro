@@ -3,6 +3,9 @@ Version: 2.3.3 (xx-xxx-2014)
 
 #6: Nested Map type fields do not work
  (reported by cresny@github)
+#7: Add `AvroGenerator.Feature.IGNORE_UNKWNOWN` to allow filtering of
+  properties that are not defined in Schema, during output
+ (suggested by cresny@github)
 
 ------------------------------------------------------------------------
 === History: ===

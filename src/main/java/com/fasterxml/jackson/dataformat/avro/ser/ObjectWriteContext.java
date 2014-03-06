@@ -71,9 +71,18 @@ public final class ObjectWriteContext
     @Override
     public void writeValue(Object value) throws JsonMappingException {
         _verifyValueWrite();
-        _record.put(_nextField.pos(), value);
+        if (_nextField != null) {
+            _record.put(_nextField.pos(), value);
+        }
     }
 
+    protected final void _verifyValueWrite() {
+        if (!_expectValue) {
+            throw new IllegalStateException("Expecting FIELD_NAME, not value");
+        }
+        _expectValue = false;
+    }
+    
     protected Schema.Field _findField() {
         if (_currentName == null) {
             throw new IllegalStateException("No current field name");

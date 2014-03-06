@@ -36,6 +36,7 @@ public class SimpleGenerationTest extends AvroTestBase
     protected static class BinaryAndNumber extends Binary {
         public int number;
 
+        public BinaryAndNumber() { super(); }
         public BinaryAndNumber(String name, int nr) {
             super(name, null);
             number = nr;
@@ -104,10 +105,10 @@ public class SimpleGenerationTest extends AvroTestBase
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         mapper.writer(schema).writeValue(b, input);
         byte[] bytes = b.toByteArray();
-        assertEquals(15, bytes.length);
+        assertEquals(6, bytes.length);
 
         // and should be able to get it back too
-        BinaryAndNumber output = mapper.readValue(bytes, BinaryAndNumber.class);
+        BinaryAndNumber output = mapper.reader(schema).withType(BinaryAndNumber.class).readValue(bytes);
         assertEquals("Bob", output.name);
     }
 }

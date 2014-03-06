@@ -1,6 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,8 +21,7 @@ public class AvroMapper extends ObjectMapper
         super(f);
     }
 
-    protected AvroMapper(ObjectMapper src)
-    {
+    protected AvroMapper(ObjectMapper src) {
         super(src);
     }
     

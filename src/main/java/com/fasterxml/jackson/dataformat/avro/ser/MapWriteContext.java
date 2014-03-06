@@ -56,8 +56,11 @@ public final class MapWriteContext
         _verifyValueWrite();
         _data.put(_currentName, value);
     }
-    
-    protected Schema.Field _findField() {
-        throw new UnsupportedOperationException("Avro Maps do not define fields");
+
+    protected final void _verifyValueWrite() {
+        if (!_expectValue) {
+            throw new IllegalStateException("Expecting FIELD_NAME, not value");
+        }
+        _expectValue = false;
     }
 }
