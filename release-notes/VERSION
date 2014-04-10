@@ -1,5 +1,11 @@
 Project: jackson-dataformat-avro
-Version: 2.3.3 (xx-xxx-2014)
+Version: 2.3.4 (xx-xxx-2014)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+2.3.3 (10-Apr-2014)
 
 #6: Nested Map type fields do not work
  (reported by cresny@github)
@@ -7,9 +13,6 @@ Version: 2.3.3 (xx-xxx-2014)
   properties that are not defined in Schema, during output
  (suggested by cresny@github)
 
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 2.3.2 (01-Mar-2014)
 
