@@ -248,29 +248,40 @@ public class AvroFactory extends JsonFactory
     @SuppressWarnings("resource")
     @Override
     public AvroParser createParser(File f) throws IOException {
-        return _createParser(new FileInputStream(f), _createContext(f, true));
+        IOContext ctxt = _createContext(f, true);
+        return _createParser(_decorate(new FileInputStream(f), ctxt), ctxt);
     }
 
     @Override
     public AvroParser createParser(URL url) throws IOException {
-        return _createParser(_optimizedStreamFromURL(url), _createContext(url, true));
+        IOContext ctxt = _createContext(url, true);
+        return _createParser(_decorate(_optimizedStreamFromURL(url), ctxt), ctxt);
     }
 
     @Override
     public AvroParser createParser(InputStream in) throws IOException {
-        return _createParser(in, _createContext(in, false));
+        IOContext ctxt = _createContext(in, false);
+        return _createParser(_decorate(in, ctxt), ctxt);
     }
 
     //public JsonParser createParser(Reader r)
     
     @Override
     public AvroParser createParser(byte[] data) throws IOException {
-        return _createParser(data, 0, data.length, _createContext(data, true));
+        return createParser(data, 0, data.length);
     }
     
+    @SuppressWarnings("resource")
     @Override
     public AvroParser createParser(byte[] data, int offset, int len) throws IOException {
-        return _createParser(data, offset, len, _createContext(data, true));
+        IOContext ctxt = _createContext(data, true);
+        if (_inputDecorator != null) {
+            InputStream in = _inputDecorator.decorate(ctxt, data, 0, data.length);
+            if (in != null) {
+                return _createParser(_decorate(in, ctxt), ctxt);
+            }
+        }
+        return _createParser(data, offset, len, ctxt);
     }
 
     /*
@@ -297,7 +308,7 @@ public class AvroFactory extends JsonFactory
     {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
-        return _createGenerator(out, ctxt);
+        return _createGenerator(_decorate(out, ctxt), ctxt);
     }
     
     /*
@@ -320,13 +331,13 @@ public class AvroFactory extends JsonFactory
 
     @Override
     protected JsonParser _createParser(Reader r, IOContext ctxt) throws IOException {
-        return _reportNonByteSource();
+        return _nonByteSource();
     }
 
     @Override
     protected JsonParser _createParser(char[] data, int offset, int len, IOContext ctxt,
             boolean recyclable) throws IOException {
-        return _reportNonByteSource();
+        return _nonByteSource();
     }
 
     @Override
@@ -341,14 +352,14 @@ public class AvroFactory extends JsonFactory
      */
     @Override
     protected JsonGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
-        return _reportNonByteTarget();
+        return _nonByteTarget();
     }
 
     //public BufferRecycler _getBufferRecycler()
 
     @Override
     protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException {
-        return _reportNonByteTarget();
+        return _nonByteTarget();
     }
     
     /*
@@ -365,11 +376,11 @@ public class AvroFactory extends JsonFactory
         return gen;
     }
 
-    protected <T> T _reportNonByteSource() throws IOException {
+    protected <T> T _nonByteSource() throws IOException {
         throw new UnsupportedOperationException("Can not create generator for character-based (not byte-based) source");
     }
 
-    protected <T> T _reportNonByteTarget() throws IOException {
+    protected <T> T _nonByteTarget() throws IOException {
         throw new UnsupportedOperationException("Can not create generator for character-based (not byte-based) target");
     }
 }
