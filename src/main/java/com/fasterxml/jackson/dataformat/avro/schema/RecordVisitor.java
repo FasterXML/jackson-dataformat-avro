@@ -104,12 +104,14 @@ public class RecordVisitor
             BeanPropertyWriter bpw = (BeanPropertyWriter) prop;
             ser = bpw.getSerializer();
         }
+        final SerializerProvider prov = getProvider();
         if (ser == null) {
-            SerializerProvider prov = getProvider();
             if (prov == null) throw new Error();
             ser = prov.findValueSerializer(prop.getType(), prop);
         }
         VisitorFormatWrapperImpl visitor = new VisitorFormatWrapperImpl(_schemas);
+        // Fix #8:
+        visitor.setProvider(prov);
         ser.acceptJsonFormatVisitor(visitor, prop.getType());
         return visitor.getAvroSchema();
     }
