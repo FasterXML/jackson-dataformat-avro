@@ -30,9 +30,14 @@ public class VisitorFormatWrapperImpl
     /**********************************************************************
      */
     
-    public VisitorFormatWrapperImpl(DefinedSchemas schemas)
-    {
+    @Deprecated // since 2.4.1
+    public VisitorFormatWrapperImpl(DefinedSchemas schemas) {
+        this(schemas, null);
+    }
+
+    public VisitorFormatWrapperImpl(DefinedSchemas schemas, SerializerProvider p) {
         _schemas = schemas;
+        _provider = p;
     }
     
     @Override

@@ -18,6 +18,10 @@ public class TestSimpleGeneration extends AvroTestBase
 
     @SuppressWarnings("serial")
     public static class StringMap extends HashMap<String,String> { }
+
+    static class WithDate {
+        public Date date;
+    }
     
     /*
     /**********************************************************
@@ -91,5 +95,15 @@ public class TestSimpleGeneration extends AvroTestBase
         // should probably verify, maybe... ?
         
 //        System.out.println("Map schema:\n"+json);
+    }
+
+    // [Issue#8]
+    public void testWithDate() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+        AvroSchemaGenerator gen = new AvroSchemaGenerator();
+        mapper.acceptJsonFormatVisitor(WithDate.class, gen);
+        AvroSchema schema = gen.getGeneratedSchema();
+        assertNotNull(schema);
     }
 }

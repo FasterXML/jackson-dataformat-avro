@@ -56,7 +56,7 @@ public class RecordVisitor
     public void property(String name, JsonFormatVisitable handler,
             JavaType type) throws JsonMappingException
     {
-        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
+        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas, getProvider());
         handler.acceptJsonFormatVisitor(wrapper, type);
         Schema schema = wrapper.getAvroSchema();
         _fields.add(new Schema.Field(name, schema, null, null));
@@ -79,7 +79,7 @@ public class RecordVisitor
     public void optionalProperty(String name, JsonFormatVisitable handler,
             JavaType type) throws JsonMappingException
     {
-        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
+        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas, getProvider());
         handler.acceptJsonFormatVisitor(wrapper, type);
         Schema schema = wrapper.getAvroSchema();
         if (!type.isPrimitive()) {
@@ -94,8 +94,7 @@ public class RecordVisitor
     /**********************************************************************
      */
     
-    protected Schema schemaForWriter(BeanProperty prop)
-        throws JsonMappingException
+    protected Schema schemaForWriter(BeanProperty prop) throws JsonMappingException
     {
         JsonSerializer<?> ser = null;
 
@@ -104,12 +103,14 @@ public class RecordVisitor
             BeanPropertyWriter bpw = (BeanPropertyWriter) prop;
             ser = bpw.getSerializer();
         }
+        final SerializerProvider prov = getProvider();
         if (ser == null) {
-            SerializerProvider prov = getProvider();
-            if (prov == null) throw new Error();
+            if (prov == null) {
+                throw new JsonMappingException("SerializerProvider missing for RecordVisitor");
+            }
             ser = prov.findValueSerializer(prop.getType(), prop);
         }
-        VisitorFormatWrapperImpl visitor = new VisitorFormatWrapperImpl(_schemas);
+        VisitorFormatWrapperImpl visitor = new VisitorFormatWrapperImpl(_schemas, prov);
         ser.acceptJsonFormatVisitor(visitor, prop.getType());
         return visitor.getAvroSchema();
     }

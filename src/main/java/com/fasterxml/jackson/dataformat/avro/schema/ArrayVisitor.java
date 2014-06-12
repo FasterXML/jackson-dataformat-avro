@@ -42,7 +42,7 @@ public class ArrayVisitor
     public void itemsFormat(JsonFormatVisitable visitable, JavaType type)
             throws JsonMappingException
     {
-        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas);
+        VisitorFormatWrapperImpl wrapper = new VisitorFormatWrapperImpl(_schemas, getProvider());
         visitable.acceptJsonFormatVisitor(wrapper, type);
         _elementSchema = wrapper.getAvroSchema();
     }

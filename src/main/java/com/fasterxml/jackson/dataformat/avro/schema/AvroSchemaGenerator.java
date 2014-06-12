@@ -5,7 +5,8 @@ import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 public class AvroSchemaGenerator extends VisitorFormatWrapperImpl
 {
     public AvroSchemaGenerator() {
-        super(new DefinedSchemas());
+        // NOTE: null is fine here, as provider links itself after construction
+        super(new DefinedSchemas(), null);
     }
 
     public AvroSchema getGeneratedSchema() {
