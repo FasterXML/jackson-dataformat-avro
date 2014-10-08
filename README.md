@@ -9,7 +9,7 @@ Project is licensed under [Apache License 2.0](http://www.apache.org/licenses/LI
 
 # Status
 
-Module is based on Jackson 2.1, and has been tested with simple Avro Schemas.
+Module is based on Jackson 2.x, and has been tested with simple Avro Schemas.
 Both serialization and deserialization work.
 
 ## Maven dependency
@@ -20,7 +20,7 @@ To use this extension on Maven-based projects, use following dependency:
 <dependency>
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
-  <version>2.1.1</version>
+  <version>2.4.3</version>
 </dependency>
 ```
 
