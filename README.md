@@ -119,11 +119,16 @@ org.apache.avro.Schema avroSchema = schemaWrapper.getAvroSchema();
 String asJson = avroSchema.toString(true);
 ```
 
-So: you can generate native Avro Schema object very easily.
+So: you can generate native Avro Schema object very easily, and use that instead of
+hand-crafted variant. Or you can even use this method for outputting schemas to use
+in other processing systems; use your POJOs as origin of schemata.
 
 ## Ok, so you REALLY want Streaming API
 
-You can also just use underlying `AvroFactory` and parser it produces, for event-based processing:
+Although use of data-binding is strongly recommended, due to strongly typed nature of Avro,
+it is actually quite possible to use Jackson Streaming API.
+
+So you can just use underlying `AvroFactory` and parser it produces, for event-based processing:
 
 ```java
 AvroFactory factory = new AvroFactory();
@@ -135,15 +140,19 @@ while (parser.nextToken() != null) {
 }
 ```
 
-and similarly with `JsonGenerator`
+and similarly with `JsonGenerator`. And as with other fully-supported formats, you can even
+mix-and-match data-binding with streaming (see `JsonParser.readValueAs()`).
 
 # Issues
 
-Currently, following things are likely to cause problems:
+Currently, following things have not been thoroughly tested and may cause problems:
 
 * More advanced features will probably not work well. This includes:
- * Polymorphic type handling
- * Object identity
+    * Polymorphic type handling
+    * Object identity
+
+especially because Avro itself does not have much direct support for polymorphic types
+or object identity.
 
 # Documentation
 
