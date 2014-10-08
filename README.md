@@ -52,6 +52,9 @@ Schema raw = new Schema.Parser().setValidate(true).parse(SCHEMA_JSON);
 AvroSchema schema = new AvroSchema(raw);
 ```
 
+However, note that there is another much more convenient way. If you are itching to know how,
+peek at "Generating Avro Schema from POJO definition" section below; otherwise keep on reading.
+
 ## Creating ObjectMapper
 
 (note: although you can use Streaming API -- if you really want -- it is unlikely to be very interesting to use directly)
