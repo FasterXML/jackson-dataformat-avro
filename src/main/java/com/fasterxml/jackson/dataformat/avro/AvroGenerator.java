@@ -253,14 +253,17 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public final void flush() throws IOException
-    {
+    public final void flush() throws IOException {
         _output.flush();
     }
     
     @Override
     public void close() throws IOException
     {
+    	// First one sanity check, for a (relatively?) common case
+        if (_rootContext == null) {
+    	    throw new JsonGenerationException("Illegal state: no Schema set for AvroGenerator");
+        }
         super.close();
         if (isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)) {
             AvroWriteContext ctxt;
