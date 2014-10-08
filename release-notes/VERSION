@@ -1,13 +1,17 @@
 Project: jackson-dataformat-avro
-Version: 2.4.3 (04-Oct-2014)
+Version: 2.4.3 (xx-xxx-2014)
 
-No changes.
+#11: Add convenience methods in `AvroMapper` for Schema-generation from POJO
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
 
+2.4.3 (04-Oct-2014)
 2.4.2 (15-Aug-2014)
+
+No changes since 2.4.1
+
 2.4.1 (17-Jun-2014)
 
 #8: Error in creating Avro Schema for `java.util.Date` (and related) type.
