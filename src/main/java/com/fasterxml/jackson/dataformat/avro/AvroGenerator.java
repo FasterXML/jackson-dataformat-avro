@@ -260,10 +260,6 @@ public class AvroGenerator extends GeneratorBase
     @Override
     public void close() throws IOException
     {
-    	// First one sanity check, for a (relatively?) common case
-        if (_rootContext == null) {
-    	    throw new JsonGenerationException("Illegal state: no Schema set for AvroGenerator");
-        }
         super.close();
         if (isEnabled(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT)) {
             AvroWriteContext ctxt;
@@ -540,6 +536,14 @@ public class AvroGenerator extends GeneratorBase
     protected void _complete() throws IOException
     {
         _complete = true;
+        
+        // add defensive coding here but only because this often gets triggered due
+        // to forced closure resulting from another exception; so, we typically
+        // do not want to hide the original problem...
+    	// First one sanity check, for a (relatively?) common case
+        if (_rootContext == null) {
+        	return;
+        }
         BinaryEncoder encoder = AvroSchema.encoder(_output);
         _rootContext.complete(encoder);
         encoder.flush();
