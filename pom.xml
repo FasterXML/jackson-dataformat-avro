@@ -53,7 +53,7 @@ abstractions.
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>1.7.2</version>
+      <version>1.7.7</version>
     </dependency>
 
      <!-- and for testing we need annotations -->
@@ -67,6 +67,19 @@ abstractions.
 
   <build>
     <plugins>
+      <plugin> <!-- prevent build fail due to known failing tests (if any) -->
+        <groupId>org.apache.maven.plugins</groupId>
+<!--
+        <version>${version.plugin.surefire}</version>
+-->
+        <version>${surefire.version}</version>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>com/fasterxml/jackson/dataformat/avro/failing/*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin><!-- Inherited from oss-base. Generate PackageVersion.java.-->
         <groupId>com.google.code.maven-replacer-plugin</groupId>
         <artifactId>replacer</artifactId>

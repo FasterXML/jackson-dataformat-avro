@@ -1,16 +1,9 @@
-package com.fasterxml.jackson.dataformat.avro;
+package com.fasterxml.jackson.dataformat.avro.failing;
+
+import com.fasterxml.jackson.dataformat.avro.*;
 
 public class EnumTest extends AvroTestBase
 {
-    protected final static String ENUM_SCHEMA_JSON = "{\n"
-            +"\"type\": \"record\",\n"
-            +"\"name\": \"Employee\",\n"
-            +"\"fields\": [\n"
-            +" {\"name\": \"gender\", \"type\": { \"type\" : \"enum\","
-            +" \"name\": \"Gender\", \"symbols\": [\"M\",\"F\"] }"
-            +"}\n"
-            +"]}";
-
     protected enum Gender { M, F; } 
     
     protected static class Employee {
@@ -19,12 +12,13 @@ public class EnumTest extends AvroTestBase
 
     private final AvroMapper MAPPER = new AvroMapper();
     
-    public void testSimple() throws Exception
+    // [dataformat-avro#12]
+    public void testEnumViaGeneratedSchema() throws Exception
     {
-        AvroSchema schema = parseSchema(ENUM_SCHEMA_JSON);
+    	final AvroSchema schema = MAPPER.schemaFor(Employee.class);
         Employee input = new Employee();
         input.gender = Gender.F;
-
+    	
         byte[] bytes = MAPPER.writer(schema).writeValueAsBytes(input);
         assertNotNull(bytes);
         assertEquals(1, bytes.length); // measured to be current exp size
