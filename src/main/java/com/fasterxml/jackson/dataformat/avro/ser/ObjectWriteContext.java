@@ -76,6 +76,14 @@ public final class ObjectWriteContext
         }
     }
 
+    @Override
+    public void writeString(String value) {
+        _verifyValueWrite();
+        if (_nextField != null) {
+            _record.put(_nextField.pos(), value);
+        }
+    }
+    
     protected final void _verifyValueWrite() {
         if (!_expectValue) {
             throw new IllegalStateException("Expecting FIELD_NAME, not value");

@@ -3,10 +3,7 @@ package com.fasterxml.jackson.dataformat.avro.ser;
 import java.io.IOException;
 
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericContainer;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.*;
 import org.apache.avro.io.BinaryEncoder;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -68,17 +65,25 @@ class RootContext
 
     @Override
     public void writeValue(Object value) {
-        throw new IllegalStateException("Can not write values directly in root context, outside of Records/Arrays");
+    	_reportError();
     }
 
     @Override
-    public void complete(BinaryEncoder encoder) throws IOException
-    {
-        new GenericDatumWriter<GenericContainer>(_schema).write(_rootValue, encoder);
+    public void writeString(String value) {
+        _reportError();
+    }
+    
+    @Override
+    public void complete(BinaryEncoder encoder) throws IOException {
+        new NonBSGenericDatumWriter<GenericContainer>(_schema).write(_rootValue, encoder);
     }
 
     @Override
     public void appendDesc(StringBuilder sb) {
         sb.append("/");
+    }
+
+    protected void _reportError() {
+        throw new IllegalStateException("Can not write values directly in root context, outside of Records/Arrays");
     }
 }

@@ -57,6 +57,12 @@ public final class MapWriteContext
         _data.put(_currentName, value);
     }
 
+    @Override
+    public void writeString(String value) {
+        _verifyValueWrite();
+        _data.put(_currentName, value);
+    }
+    
     protected final void _verifyValueWrite() {
         if (!_expectValue) {
             throw new IllegalStateException("Expecting FIELD_NAME, not value");

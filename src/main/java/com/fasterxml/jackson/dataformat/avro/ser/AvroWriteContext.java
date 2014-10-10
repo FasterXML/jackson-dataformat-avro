@@ -71,6 +71,11 @@ public abstract class AvroWriteContext
     public abstract void writeValue(Object value) throws JsonMappingException;
 
     /**
+     * @since 2.5
+     */
+    public abstract void writeString(String value) throws JsonMappingException;
+    
+    /**
      * Accessor called to link data being built with resulting object.
      */
     public abstract Object rawValue();
@@ -203,6 +208,11 @@ public abstract class AvroWriteContext
     
         @Override
         public void writeValue(Object value) {
+            _reportError();
+        }
+
+        @Override
+        public void writeString(String value) throws JsonMappingException {
             _reportError();
         }
         

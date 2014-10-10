@@ -26,12 +26,13 @@ public class NopWriteContext extends AvroWriteContext
     }
     
     @Override
-    public void writeValue(Object value) {
-    }
+    public void writeValue(Object value) { }
+
+    @Override
+    public void writeString(String value) { }
     
     @Override
-    public void appendDesc(StringBuilder sb)
-    {
+    public void appendDesc(StringBuilder sb) {
         sb.append("(...)");
     }
 }

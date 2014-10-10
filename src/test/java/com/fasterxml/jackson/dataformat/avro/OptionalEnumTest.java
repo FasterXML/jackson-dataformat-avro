@@ -1,8 +1,8 @@
-package com.fasterxml.jackson.dataformat.avro.failing;
+package com.fasterxml.jackson.dataformat.avro;
 
 import com.fasterxml.jackson.dataformat.avro.*;
 
-public class EnumTest extends AvroTestBase
+public class OptionalEnumTest extends AvroTestBase
 {
     protected enum Gender { M, F; } 
     
@@ -21,7 +21,10 @@ public class EnumTest extends AvroTestBase
     	
         byte[] bytes = MAPPER.writer(schema).writeValueAsBytes(input);
         assertNotNull(bytes);
-        assertEquals(1, bytes.length); // measured to be current exp size
+
+        // Since this is optional field, need two bytes; one for (union) type, one for enum index
+        
+        assertEquals(2, bytes.length); // measured to be current exp size
 
         // and then back
         Employee output = MAPPER.reader(Employee.class).with(schema)

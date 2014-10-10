@@ -1,7 +1,8 @@
 Project: jackson-dataformat-avro
-Version: 2.4.3 (xx-xxx-2014)
+Version: 2.5.0 (xx-xxx-2014)
 
 #11: Add convenience methods in `AvroMapper` for Schema-generation from POJO
+#12: Problem serializing optional Enum (in union)
 - Upgrade to Avro 1.7.7
 
 ------------------------------------------------------------------------

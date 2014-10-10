@@ -39,6 +39,11 @@ public final class ArrayWriteContext
     public void writeValue(Object value) {
         _array.add(value);
     }
+
+    @Override
+    public void writeString(String value) {
+        _array.add(value);
+    }
     
     @Override
     public void appendDesc(StringBuilder sb)

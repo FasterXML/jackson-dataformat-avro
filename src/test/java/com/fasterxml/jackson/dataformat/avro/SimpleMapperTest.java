@@ -1,9 +1,6 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.*;
 
 public class SimpleMapperTest extends AvroTestBase
 {

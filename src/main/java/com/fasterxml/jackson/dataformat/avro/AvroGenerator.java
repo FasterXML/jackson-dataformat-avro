@@ -197,21 +197,21 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public final void writeFieldName(String name) throws IOException, JsonGenerationException
+    public final void writeFieldName(String name) throws IOException
     {
         _avroContext.writeFieldName(name);
     }
 
     @Override
     public final void writeFieldName(SerializableString name)
-        throws IOException, JsonGenerationException
+        throws IOException
     {
         _avroContext.writeFieldName(name.getValue());
     }
 
     @Override
     public final void writeStringField(String fieldName, String value)
-        throws IOException, JsonGenerationException
+        throws IOException
     {
         _avroContext.writeFieldName(fieldName);
         writeString(value);
@@ -296,13 +296,12 @@ public class AvroGenerator extends GeneratorBase
      */
     
     @Override
-    public final void writeStartArray() throws IOException, JsonGenerationException
-    {
+    public final void writeStartArray() throws IOException {
         _avroContext = _avroContext.createChildArrayContext();
     }
     
     @Override
-    public final void writeEndArray() throws IOException, JsonGenerationException
+    public final void writeEndArray() throws IOException
     {
         if (!_avroContext.inArray()) {
             _reportError("Current context not an ARRAY but "+_avroContext.getTypeDesc());
@@ -314,13 +313,12 @@ public class AvroGenerator extends GeneratorBase
     }
 
     @Override
-    public final void writeStartObject() throws IOException, JsonGenerationException
-    {
+    public final void writeStartObject() throws IOException {
         _avroContext = _avroContext.createChildObjectContext();
     }
 
     @Override
-    public final void writeEndObject() throws IOException, JsonGenerationException
+    public final void writeEndObject() throws IOException
     {
         if (!_avroContext.inObject()) {
             _reportError("Current context not an object but "+_avroContext.getTypeDesc());
@@ -342,39 +340,32 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public void writeString(String text) throws IOException,JsonGenerationException
+    public void writeString(String text) throws IOException
     {
         if (text == null) {
             writeNull();
             return;
         }
-        _avroContext.writeValue(text);
+        _avroContext.writeString(text);
     }
 
     @Override
-    public void writeString(char[] text, int offset, int len) throws IOException, JsonGenerationException
-    {
+    public void writeString(char[] text, int offset, int len) throws IOException {
         writeString(new String(text, offset, len));
     }
 
     @Override
-    public final void writeString(SerializableString sstr)
-        throws IOException, JsonGenerationException
-    {
+    public final void writeString(SerializableString sstr) throws IOException {
         writeString(sstr.toString());
     }
 
     @Override
-    public void writeRawUTF8String(byte[] text, int offset, int len)
-        throws IOException, JsonGenerationException
-    {
+    public void writeRawUTF8String(byte[] text, int offset, int len) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public final void writeUTF8String(byte[] text, int offset, int len)
-        throws IOException, JsonGenerationException
-    {
+    public final void writeUTF8String(byte[] text, int offset, int len) throws IOException {
         writeString(new String(text, offset, len, "UTF-8"));
     }
 
@@ -385,37 +376,37 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public void writeRaw(String text) throws IOException, JsonGenerationException {
+    public void writeRaw(String text) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRaw(String text, int offset, int len) throws IOException, JsonGenerationException {
+    public void writeRaw(String text, int offset, int len) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRaw(char[] text, int offset, int len) throws IOException, JsonGenerationException {
+    public void writeRaw(char[] text, int offset, int len) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRaw(char c) throws IOException, JsonGenerationException {
+    public void writeRaw(char c) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRawValue(String text) throws IOException, JsonGenerationException {
+    public void writeRawValue(String text) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRawValue(String text, int offset, int len) throws IOException, JsonGenerationException {
+    public void writeRawValue(String text, int offset, int len) throws IOException {
         _reportUnsupportedOperation();
     }
 
     @Override
-    public void writeRawValue(char[] text, int offset, int len) throws IOException, JsonGenerationException {
+    public void writeRawValue(char[] text, int offset, int len) throws IOException {
         _reportUnsupportedOperation();
     }
 
@@ -426,7 +417,7 @@ public class AvroGenerator extends GeneratorBase
      */
     
     @Override
-    public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException, JsonGenerationException
+    public void writeBinary(Base64Variant b64variant, byte[] data, int offset, int len) throws IOException
     {
         if (data == null) {
             writeNull();
@@ -457,27 +448,27 @@ public class AvroGenerator extends GeneratorBase
      */
 
     @Override
-    public void writeBoolean(boolean state) throws IOException, JsonGenerationException {
+    public void writeBoolean(boolean state) throws IOException {
         _avroContext.writeValue(state ? Boolean.TRUE : Boolean.FALSE);
     }
 
     @Override
-    public void writeNull() throws IOException, JsonGenerationException {
+    public void writeNull() throws IOException {
         _avroContext.writeValue(null);
     }
 
     @Override
-    public void writeNumber(int i) throws IOException, JsonGenerationException {
+    public void writeNumber(int i) throws IOException {
         _avroContext.writeValue(Integer.valueOf(i));
     }
 
     @Override
-    public void writeNumber(long l) throws IOException, JsonGenerationException {
+    public void writeNumber(long l) throws IOException {
         _avroContext.writeValue(Long.valueOf(l));
     }
 
     @Override
-    public void writeNumber(BigInteger v) throws IOException, JsonGenerationException
+    public void writeNumber(BigInteger v) throws IOException
     {
         if (v == null) {
             writeNull();
@@ -487,17 +478,17 @@ public class AvroGenerator extends GeneratorBase
     }
     
     @Override
-    public void writeNumber(double d) throws IOException, JsonGenerationException {
+    public void writeNumber(double d) throws IOException {
         _avroContext.writeValue(Double.valueOf(d));
     }    
 
     @Override
-    public void writeNumber(float f) throws IOException, JsonGenerationException {
+    public void writeNumber(float f) throws IOException {
         _avroContext.writeValue(Float.valueOf(f));
     }
 
     @Override
-    public void writeNumber(BigDecimal dec) throws IOException, JsonGenerationException
+    public void writeNumber(BigDecimal dec) throws IOException
     {
         if (dec == null) {
             writeNull();
@@ -507,7 +498,7 @@ public class AvroGenerator extends GeneratorBase
     }
 
     @Override
-    public void writeNumber(String encodedValue) throws IOException, UnsupportedOperationException {
+    public void writeNumber(String encodedValue) throws IOException {
         throw new UnsupportedOperationException("Can not write 'untyped' numbers");
     }
 
@@ -518,7 +509,7 @@ public class AvroGenerator extends GeneratorBase
      */
     
     @Override
-    protected final void _verifyValueWrite(String typeMsg) throws IOException, JsonGenerationException {
+    protected final void _verifyValueWrite(String typeMsg) throws IOException {
         _throwInternal();
     }
 
