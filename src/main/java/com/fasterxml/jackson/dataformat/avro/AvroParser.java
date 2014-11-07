@@ -21,8 +21,6 @@ public abstract class AvroParser extends ParserBase
      * Enumeration that defines all togglable features for Avro parsers.
      */
     public enum Feature {
-        
-        BOGUS(false)
         ;
 
         final boolean _defaultState;
