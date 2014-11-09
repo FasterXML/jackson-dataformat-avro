@@ -3,6 +3,8 @@ package com.fasterxml.jackson.dataformat.avro.ser;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
 
@@ -60,7 +62,8 @@ public final class ObjectWriteContext
         _expectValue = true;
         Schema.Field field = _schema.getField(name);
         if (field == null) {
-            if (!_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
+            if (!_generator.isEnabled(JsonGenerator.Feature.IGNORE_UNKNOWN)
+                    && !_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
                 throw new IllegalStateException("No field named '"+name+"'");
             }
         }
@@ -97,7 +100,8 @@ public final class ObjectWriteContext
         }
         Schema.Field f = _schema.getField(_currentName);
         if (f == null) {
-            if (!_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
+            if (!_generator.isEnabled(JsonGenerator.Feature.IGNORE_UNKNOWN)
+                    && !_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
                 throw new IllegalStateException("No field named '"+_currentName+"'");
             }
         }

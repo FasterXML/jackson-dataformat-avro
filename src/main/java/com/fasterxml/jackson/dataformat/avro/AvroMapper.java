@@ -11,7 +11,7 @@ import com.fasterxml.jackson.dataformat.avro.schema.AvroSchemaGenerator;
  * constructing a mapper with {@link AvroFactory}, but also adds little
  * bit of convenience around {@link AvroSchema} generation.
  * 
- * @since 2.4
+ * @since 2.5
  */
 public class AvroMapper extends ObjectMapper
 {
@@ -46,9 +46,9 @@ public class AvroMapper extends ObjectMapper
      */
     public AvroSchema schemaFor(Class<?> type) throws JsonMappingException
     {
-    	AvroSchemaGenerator gen = new AvroSchemaGenerator();
-    	this.acceptJsonFormatVisitor(type, gen);
-    	return gen.getGeneratedSchema();
+        AvroSchemaGenerator gen = new AvroSchemaGenerator();
+        acceptJsonFormatVisitor(type, gen);
+    	    return gen.getGeneratedSchema();
     }
 
     /**
@@ -56,8 +56,8 @@ public class AvroMapper extends ObjectMapper
      */
     public AvroSchema schemaFor(JavaType type) throws JsonMappingException
     {
-    	AvroSchemaGenerator gen = new AvroSchemaGenerator();
-    	this.acceptJsonFormatVisitor(type, gen);
-    	return gen.getGeneratedSchema();
+        AvroSchemaGenerator gen = new AvroSchemaGenerator();
+        acceptJsonFormatVisitor(type, gen);
+        return gen.getGeneratedSchema();
     }
 }

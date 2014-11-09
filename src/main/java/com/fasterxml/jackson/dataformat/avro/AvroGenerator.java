@@ -28,7 +28,11 @@ public class AvroGenerator extends GeneratorBase
          * Feature is disabled by default.
          * 
          * @since 2.4
+         * 
+         * @deprecated Since 2.5 replaced by {@link com.fasterxml.jackson.core.JsonGenerator.Feature#IGNORE_UNKNOWN}
+         *   which should be used instead
          */
+        @Deprecated
         IGNORE_UNKWNOWN(false)
         ;
 
@@ -57,7 +61,12 @@ public class AvroGenerator extends GeneratorBase
         
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
-    };
+
+        /**
+         * @since 2.5
+         */
+        public boolean enabledIn(int flags) { return (flags & _mask) != 0; }
+    }
     
     /*
     /**********************************************************

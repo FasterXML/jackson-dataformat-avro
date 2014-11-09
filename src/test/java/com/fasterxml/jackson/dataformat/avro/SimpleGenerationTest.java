@@ -100,7 +100,8 @@ public class SimpleGenerationTest extends AvroTestBase
         }
 
         // But should be fine if (and only if!) we enable support for skipping
-        af.enable(AvroGenerator.Feature.IGNORE_UNKWNOWN);
+        af.enable(JsonGenerator.Feature.IGNORE_UNKNOWN);
+
         gen = mapper.getFactory().createGenerator(new ByteArrayOutputStream());
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         mapper.writer(schema).writeValue(b, input);
