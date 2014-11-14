@@ -1,12 +1,14 @@
 package com.fasterxml.jackson.dataformat.avro.ser;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
-
 import com.fasterxml.jackson.core.JsonGenerator;
-
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public final class ObjectWriteContext
     extends KeyValueContext
@@ -75,6 +77,17 @@ public final class ObjectWriteContext
     public void writeValue(Object value) throws JsonMappingException {
         _verifyValueWrite();
         if (_nextField != null) {
+            Schema schema = _nextField.schema();
+            if (schema.getType() == Schema.Type.FIXED) {
+                // 13-Nov-2014 josh: AvroGenerator wraps all binary values in ByteBuffers,
+                // but avro wants FIXED, so rewrap the array, copying if necessary
+                ByteBuffer bb = (ByteBuffer) value;
+                byte[] bytes = bb.array();
+                if (bb.arrayOffset() != 0 || bb.remaining() != bytes.length) {
+                    bytes = Arrays.copyOfRange(bytes, bb.arrayOffset(), bb.remaining());
+                }
+                value = new GenericData.Fixed(schema, bytes);
+            }
             _record.put(_nextField.pos(), value);
         }
     }
