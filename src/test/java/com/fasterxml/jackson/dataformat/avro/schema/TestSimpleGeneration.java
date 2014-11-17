@@ -34,11 +34,11 @@ public class TestSimpleGeneration extends AvroTestBase
 
     static class WithFixedField {
         @JsonProperty(required = true)
-        @AvroFixedSize(name = "FixedFieldBytes", size = 4)
+        @AvroFixedSize(typeName = "FixedFieldBytes", size = 4)
         public byte[] fixedField;
 
         @JsonProperty(value = "wff", required = true)
-        @AvroFixedSize(name = "WrappedFixedFieldBytes", size = 8)
+        @AvroFixedSize(typeName = "WrappedFixedFieldBytes", size = 8)
         public WrappedByteArray wrappedFixedField;
 
         void setValue(byte[] bytes) {

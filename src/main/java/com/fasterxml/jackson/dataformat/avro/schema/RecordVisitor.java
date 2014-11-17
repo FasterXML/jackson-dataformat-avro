@@ -97,9 +97,9 @@ public class RecordVisitor
     
     protected Schema schemaForWriter(BeanProperty prop) throws JsonMappingException
     {
-        AvroFixedSize annotation = prop.getAnnotation(AvroFixedSize.class);
-        if (annotation != null) {
-            return Schema.createFixed(annotation.name(), null, annotation.namespace(), annotation.size());
+        AvroFixedSize fixedSize = prop.getAnnotation(AvroFixedSize.class);
+        if (fixedSize != null) {
+            return Schema.createFixed(fixedSize.typeName(), null, fixedSize.typeNamespace(), fixedSize.size());
         }
 
         JsonSerializer<?> ser = null;
