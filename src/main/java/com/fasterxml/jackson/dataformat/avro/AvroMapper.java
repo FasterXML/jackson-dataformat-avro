@@ -41,6 +41,11 @@ public class AvroMapper extends ObjectMapper
         return PackageVersion.VERSION;
     }
 
+    @Override
+    public AvroFactory getFactory() {
+        return (AvroFactory) _jsonFactory;
+    }
+    
     /**
      * @since 2.5
      */
