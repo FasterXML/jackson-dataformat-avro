@@ -46,7 +46,7 @@ public abstract class AvroTestBase extends TestCase
         return _employeeSchema;
     }
 
-    protected AvroSchema parseSchema(String schemaJson) {
+    protected static AvroSchema parseSchema(String schemaJson) {
         return new AvroSchema(new Schema.Parser().setValidate(true).parse(schemaJson));        
     }
 
@@ -75,5 +75,9 @@ public abstract class AvroTestBase extends TestCase
             }
         }
         fail("Expected an exception with one of substrings ("+Arrays.asList(matches)+"): got one with message \""+msg+"\"");
+    }
+
+    protected static String aposToQuotes(String json) {
+        return json.replace("'", "\"");
     }
 }
