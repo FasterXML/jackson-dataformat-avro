@@ -63,6 +63,8 @@ public final class ObjectWriteContext
             if (!_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
                 throw new IllegalStateException("No field named '"+name+"'");
             }
+            _nextField = null;
+            return false;
         }
         _nextField = field;
         return true;
