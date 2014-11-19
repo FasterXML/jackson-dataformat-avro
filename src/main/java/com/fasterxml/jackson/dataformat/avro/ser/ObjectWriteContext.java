@@ -63,6 +63,8 @@ public final class ObjectWriteContext
         Schema.Field field = _schema.getField(name);
         if (field == null) {
             _reportUnknownField(name);
+            _nextField = null;
+            return false;
         }
         _nextField = field;
         return true;
@@ -90,7 +92,7 @@ public final class ObjectWriteContext
         }
         _expectValue = false;
     }
-    
+
     protected Schema.Field _findField() {
         if (_currentName == null) {
             throw new IllegalStateException("No current field name");
