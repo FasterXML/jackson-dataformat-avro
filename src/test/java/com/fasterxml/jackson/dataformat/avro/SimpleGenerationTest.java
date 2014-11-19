@@ -143,7 +143,7 @@ public class SimpleGenerationTest extends AvroTestBase
              mapper.writer(schema).writeValueAsBytes(input);
              fail("Should have thrown exception");
         } catch (JsonMappingException e) {
-            verifyException(e, "no field named");
+            verifyException(e, "no field named 'stuff'");
         }
 
         // But should be fine if (and only if!) we enable support for skipping

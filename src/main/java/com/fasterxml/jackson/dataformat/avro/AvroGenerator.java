@@ -283,8 +283,21 @@ public class AvroGenerator extends GeneratorBase
             }
         }
         // May need to finalize...
+        /* 18-Nov-2014, tatu: Since this method is (a) often called as a result of an exception,
+         *   and (b) quite likely to cause an exception of its own, need to work around
+         *   combination of problems; one part being to catch non-IOExceptions; something that
+         *   is usually NOT done. Partly this is because Avro codec is leaking low-level exceptions
+         *   such as NPE.
+         */
         if (!_complete) {
-            _complete();
+            try {
+                _complete();
+            } catch (IOException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new JsonGenerationException("Failed to close AvroGenerator: ("
+                        +e.getClass().getName()+"): "+e.getMessage(), e);
+            }
         }
         if (_output != null) {
             if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
@@ -445,7 +458,7 @@ public class AvroGenerator extends GeneratorBase
             bb = ByteBuffer.wrap(data);
         }
         _avroContext.writeValue(bb);
-
+        
         //        String encoded = b64variant.encode(data);
 //        _writeScalar(encoded, "byte[]", STYLE_BASE64);
     }
