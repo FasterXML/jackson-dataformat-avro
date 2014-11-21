@@ -64,10 +64,9 @@ public final class ObjectWriteContext
         _expectValue = true;
         Schema.Field field = _schema.getField(name);
         if (field == null) {
-            if (!_generator.isEnabled(JsonGenerator.Feature.IGNORE_UNKNOWN)
-                    && !_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
-                throw new IllegalStateException("No field named '"+name+"'");
-            }
+            _reportUnknownField(name);
+            _nextField = null;
+            return false;
         }
         _nextField = field;
         return true;
@@ -106,18 +105,23 @@ public final class ObjectWriteContext
         }
         _expectValue = false;
     }
-    
+
     protected Schema.Field _findField() {
         if (_currentName == null) {
             throw new IllegalStateException("No current field name");
         }
         Schema.Field f = _schema.getField(_currentName);
         if (f == null) {
-            if (!_generator.isEnabled(JsonGenerator.Feature.IGNORE_UNKNOWN)
-                    && !_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
-                throw new IllegalStateException("No field named '"+_currentName+"'");
-            }
+            _reportUnknownField(_currentName);
         }
         return f;
+    }
+
+    @SuppressWarnings("deprecation")
+    protected void _reportUnknownField(String name) {
+        if (!_generator.isEnabled(JsonGenerator.Feature.IGNORE_UNKNOWN)
+                && !_generator.isEnabled(AvroGenerator.Feature.IGNORE_UNKWNOWN)) {
+            throw new IllegalStateException("No field named '"+_currentName+"'");
+        }
     }
 }

@@ -44,6 +44,25 @@ public class SimpleGenerationTest extends AvroTestBase
         }
     }
     
+    // another, bigger test for skipping
+    @JsonPropertyOrder({ "name", "stuff", "value" })
+    protected static class BinaryAndArray extends Binary {
+        public String[] stuff;
+
+        public BinaryAndArray() { super(); }
+        public BinaryAndArray(String name) {
+            super(name, null);
+            value = new byte[1];
+            stuff = new String[] { "abc" };
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testSimplest() throws Exception
     {
         Employee empl = new Employee();
@@ -84,7 +103,7 @@ public class SimpleGenerationTest extends AvroTestBase
     }
 
     @SuppressWarnings("resource")
-    public void testIgnoringOfUnknown() throws Exception
+    public void testIgnoringOfUnknownScalar() throws Exception
     {
         AvroFactory af = new AvroFactory();
         ObjectMapper mapper = new ObjectMapper(af);
@@ -106,6 +125,30 @@ public class SimpleGenerationTest extends AvroTestBase
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         mapper.writer(schema).writeValue(b, input);
         byte[] bytes = b.toByteArray();
+        assertEquals(6, bytes.length);
+
+        // and should be able to get it back too
+        BinaryAndNumber output = mapper.reader(schema).withType(BinaryAndNumber.class).readValue(bytes);
+        assertEquals("Bob", output.name);
+    }
+
+    public void testIgnoringOfUnknownObject() throws Exception
+    {
+        AvroFactory af = new AvroFactory();
+        ObjectMapper mapper = new ObjectMapper(af);
+        AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
+
+        BinaryAndArray input = new BinaryAndArray("Bob");
+        try {
+             mapper.writer(schema).writeValueAsBytes(input);
+             fail("Should have thrown exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "no field named 'stuff'");
+        }
+
+        // But should be fine if (and only if!) we enable support for skipping
+        af.enable(JsonGenerator.Feature.IGNORE_UNKNOWN);
+        byte[] bytes = mapper.writer(schema).writeValueAsBytes(input);
         assertEquals(6, bytes.length);
 
         // and should be able to get it back too

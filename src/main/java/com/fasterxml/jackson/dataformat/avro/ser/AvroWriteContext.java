@@ -62,7 +62,8 @@ public abstract class AvroWriteContext
     /**
      * Method that writer is to call before it writes a field name.
      *
-     * @return True for Object (record) context; false for others
+     * @return True if writing succeeded (for {@link ObjectWriteContext},
+     *    iff column was recognized)
      */
     public boolean writeFieldName(String name) throws JsonMappingException {
         return false;
