@@ -1,0 +1,10 @@
+Here are people who have contributed to the development of Jackson JSON processor
+Avro data format module
+(version numbers in brackets indicate release in which the problem was fixed)
+
+Tatu Saloranta, tatu.saloranta@iki.fi: author
+
+Josh Gruenberg (joshng@github)
+
+- Contributes #14: Co Support serializing "fixed" fields
+ (2.5.0)

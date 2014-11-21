@@ -1,7 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import com.fasterxml.jackson.dataformat.avro.*;
-
 public class OptionalEnumTest extends AvroTestBase
 {
     protected enum Gender { M, F; } 
@@ -15,7 +13,7 @@ public class OptionalEnumTest extends AvroTestBase
     // [dataformat-avro#12]
     public void testEnumViaGeneratedSchema() throws Exception
     {
-    	final AvroSchema schema = MAPPER.schemaFor(Employee.class);
+        final AvroSchema schema = MAPPER.schemaFor(Employee.class);
         Employee input = new Employee();
         input.gender = Gender.F;
     	

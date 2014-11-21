@@ -65,7 +65,7 @@ class RootContext
 
     @Override
     public void writeValue(Object value) {
-    	_reportError();
+        _reportError();
     }
 
     @Override

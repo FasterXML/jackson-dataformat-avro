@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.avro.AvroFactory;
+
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
 public abstract class AvroTestBase extends TestCase
@@ -25,7 +25,7 @@ public abstract class AvroTestBase extends TestCase
 
     protected AvroSchema _employeeSchema;
 
-    protected ObjectMapper MAPPER;
+    protected ObjectMapper _sharedMapper;
     
     protected static class Employee
     {
@@ -51,10 +51,10 @@ public abstract class AvroTestBase extends TestCase
     }
 
     protected ObjectMapper getMapper() {
-        if (MAPPER == null) {
-            MAPPER = new ObjectMapper(new AvroFactory());
+        if (_sharedMapper == null) {
+            _sharedMapper = new AvroMapper();
         }
-        return MAPPER;
+        return _sharedMapper;
     }
 
     protected byte[] toAvro(Employee empl) throws IOException {
