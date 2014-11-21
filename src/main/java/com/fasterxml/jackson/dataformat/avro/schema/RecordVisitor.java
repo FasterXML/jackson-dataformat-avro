@@ -1,13 +1,14 @@
 package com.fasterxml.jackson.dataformat.avro.schema;
 
-import org.apache.avro.Schema;
-
-import java.util.*;
-
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.dataformat.avro.AvroFixedSize;
+import org.apache.avro.Schema;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordVisitor
     extends JsonObjectFormatVisitor.Base
@@ -96,6 +97,11 @@ public class RecordVisitor
     
     protected Schema schemaForWriter(BeanProperty prop) throws JsonMappingException
     {
+        AvroFixedSize fixedSize = prop.getAnnotation(AvroFixedSize.class);
+        if (fixedSize != null) {
+            return Schema.createFixed(fixedSize.typeName(), null, fixedSize.typeNamespace(), fixedSize.size());
+        }
+
         JsonSerializer<?> ser = null;
 
         // 23-Nov-2012, tatu: Ideally shouldn't need to do this but...

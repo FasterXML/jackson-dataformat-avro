@@ -1,9 +1,18 @@
 package com.fasterxml.jackson.dataformat.avro.schema;
 
-import java.util.*;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.avro.*;
+import com.fasterxml.jackson.dataformat.avro.AvroFactory;
+import com.fasterxml.jackson.dataformat.avro.AvroFixedSize;
+import com.fasterxml.jackson.dataformat.avro.AvroSchema;
+import com.fasterxml.jackson.dataformat.avro.AvroTestBase;
+import org.apache.avro.Schema;
+
+import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 public class TestSimpleGeneration extends AvroTestBase
 {
@@ -21,6 +30,27 @@ public class TestSimpleGeneration extends AvroTestBase
 
     static class WithDate {
         public Date date;
+    }
+
+    static class WithFixedField {
+        @JsonProperty(required = true)
+        @AvroFixedSize(typeName = "FixedFieldBytes", size = 4)
+        public byte[] fixedField;
+
+        @JsonProperty(value = "wff", required = true)
+        @AvroFixedSize(typeName = "WrappedFixedFieldBytes", size = 8)
+        public WrappedByteArray wrappedFixedField;
+
+        void setValue(byte[] bytes) {
+            this.fixedField = bytes;
+        }
+
+        static class WrappedByteArray {
+            @JsonValue
+            public ByteBuffer getBytes() {
+                return null;
+            }
+        }
     }
     
     /*
@@ -105,5 +135,20 @@ public class TestSimpleGeneration extends AvroTestBase
         mapper.acceptJsonFormatVisitor(WithDate.class, gen);
         AvroSchema schema = gen.getGeneratedSchema();
         assertNotNull(schema);
+    }
+
+    public void testFixed() throws Exception
+    {
+        AvroSchemaGenerator gen = new AvroSchemaGenerator();
+        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+        mapper.acceptJsonFormatVisitor(WithFixedField.class, gen);
+        Schema generated = gen.getAvroSchema();
+        Schema fixedFieldSchema = generated.getField("fixedField").schema();
+        assertEquals(Schema.Type.FIXED, fixedFieldSchema.getType());
+        assertEquals(4, fixedFieldSchema.getFixedSize());
+
+        Schema wrappedFieldSchema = generated.getField("wff").schema();
+        assertEquals(Schema.Type.FIXED, wrappedFieldSchema.getType());
+        assertEquals(8, wrappedFieldSchema.getFixedSize());
     }
 }
