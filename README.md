@@ -39,7 +39,7 @@ One way to do this is:
 ```java
 // note: AvroSchema is Jackson type that wraps "native" Avro Schema object:
 
-String SCHEMA_JSON = ""{\n"
+String SCHEMA_JSON = "{\n"
         +"\"type\": \"record\",\n"
         +"\"name\": \"Employee\",\n"
         +"\"fields\": [\n"
