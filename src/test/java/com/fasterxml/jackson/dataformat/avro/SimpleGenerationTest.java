@@ -81,7 +81,7 @@ public class SimpleGenerationTest extends AvroTestBase
         assertEquals(39, bytes.length);
         
         // read back actually
-        Employee output = mapper.reader(schema).withType(Employee.class).readValue(bytes);
+        Employee output = mapper.reader(schema).forType(Employee.class).readValue(bytes);
         assertNotNull(output);
         assertEquals(output.name, empl.name);
         assertEquals(output.age, empl.age);
@@ -95,7 +95,7 @@ public class SimpleGenerationTest extends AvroTestBase
         byte[] bytes = mapper.writer(schema).writeValueAsBytes(bin);
         assertEquals(9, bytes.length);
         assertNotNull(bytes);
-        Binary output = mapper.reader(schema).withType(Binary.class).readValue(bytes);
+        Binary output = mapper.reader(schema).forType(Binary.class).readValue(bytes);
         assertNotNull(output);
         assertEquals("Foo", output.name);
         assertNotNull(output.value);
@@ -128,7 +128,7 @@ public class SimpleGenerationTest extends AvroTestBase
         assertEquals(6, bytes.length);
 
         // and should be able to get it back too
-        BinaryAndNumber output = mapper.reader(schema).withType(BinaryAndNumber.class).readValue(bytes);
+        BinaryAndNumber output = mapper.reader(schema).forType(BinaryAndNumber.class).readValue(bytes);
         assertEquals("Bob", output.name);
     }
 
@@ -152,7 +152,7 @@ public class SimpleGenerationTest extends AvroTestBase
         assertEquals(6, bytes.length);
 
         // and should be able to get it back too
-        BinaryAndNumber output = mapper.reader(schema).withType(BinaryAndNumber.class).readValue(bytes);
+        BinaryAndNumber output = mapper.reader(schema).forType(BinaryAndNumber.class).readValue(bytes);
         assertEquals("Bob", output.name);
     }
 }

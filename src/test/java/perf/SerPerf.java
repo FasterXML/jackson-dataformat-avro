@@ -40,7 +40,7 @@ public final class SerPerf extends PerfBase
         final ObjectWriter writer = itemWriter;
         final GenericRecord itemRecord = itemToRecord(item);
         final ObjectWriter jsonWriter = new ObjectMapper()
-            .writerWithType(MediaItem.class);
+            .writerFor(MediaItem.class);
         
         while (true) {
 //            Thread.sleep(150L);

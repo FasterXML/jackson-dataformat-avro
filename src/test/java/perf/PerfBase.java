@@ -122,8 +122,8 @@ abstract class PerfBase
                 .reader(MediaItem.class)
                 .with(itemSchema);
         itemWriter = avroMapper
-                .writerWithType(MediaItem.class)
-                .withSchema(itemSchema);
+                .writerFor(MediaItem.class)
+                .with(itemSchema);
     }
 
     protected byte[] itemToBytes(MediaItem item) throws IOException {

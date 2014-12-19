@@ -72,11 +72,17 @@ public class RoundtripTest extends MapTest
         input.id = "123";
         input.name = "John";
 
-        byte[] avroData = writ.writeValueAsBytes(input);
-        assertNotNull(avroData);
+        byte[] avroData = null;
+        try {
+            avroData = writ.writeValueAsBytes(input);
+            assertNotNull(avroData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
 
         Issue16Bean output = mapper.reader(ISSUE_16_SCHEMA)
-                .withType(Issue16Bean.class).readValue(avroData);
+                .forType(Issue16Bean.class).readValue(avroData);
         assertNotNull(avroData);
 
         assertEquals(input.id, output.id);

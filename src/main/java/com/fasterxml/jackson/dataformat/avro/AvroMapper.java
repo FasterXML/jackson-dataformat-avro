@@ -23,6 +23,7 @@ public class AvroMapper extends ObjectMapper
 
     public AvroMapper(AvroFactory f) {
         super(f);
+        registerModule(new AvroModule());
     }
 
     protected AvroMapper(ObjectMapper src) {
