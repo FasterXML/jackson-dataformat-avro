@@ -9,7 +9,7 @@
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
   <name>Jackson-dataformat-Avro</name>
-  <version>2.3.5-SNAPSHOT</version>
+  <version>2.3.5</version>
   <packaging>bundle</packaging>
   <description>Support for reading and writing AVRO-encoded data via Jackson
 abstractions.
@@ -19,7 +19,7 @@ abstractions.
     <connection>scm:git:git@github.com:FasterXML/jackson-dataformat-avro.git</connection>
     <developerConnection>scm:git:git@github.com:FasterXML/jackson-dataformat-avro.git</developerConnection>
     <url>http://github.com/FasterXML/jackson-dataformat-avro</url>    
-    <tag>HEAD</tag>
+    <tag>jackson-dataformat-avro-2.3.5</tag>
   </scm>
 
   <properties>
