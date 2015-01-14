@@ -1,11 +1,16 @@
 Project: jackson-dataformat-avro
-Version: 2.3.4 (17-Jul-2014)
-
-#8: Error in creating Avro Schema for `java.util.Date` (and related) type.
 
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
+
+2.3.5 (14-Jan-2015)
+
+No changes since 2.3.4
+
+2.3.4 (17-Jul-2014)
+
+#8: Error in creating Avro Schema for `java.util.Date` (and related) type.
 
 2.3.3 (10-Apr-2014)
 
