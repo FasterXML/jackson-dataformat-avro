@@ -152,7 +152,7 @@ public abstract class AvroParser extends ParserBase
     }
 
     @Override
-    protected void _finishString() throws IOException, JsonParseException {
+    protected void _finishString() throws IOException {
         throw new UnsupportedOperationException();
     }
 
@@ -262,7 +262,7 @@ public abstract class AvroParser extends ParserBase
      */
     
     @Override
-    public abstract JsonToken nextToken() throws IOException, JsonParseException;
+    public abstract JsonToken nextToken() throws IOException;
 
     /*
     /**********************************************************
@@ -277,7 +277,7 @@ public abstract class AvroParser extends ParserBase
     }
     
     @Override
-    public String getText() throws IOException, JsonParseException
+    public String getText() throws IOException
     {
         if (_currToken == JsonToken.VALUE_STRING) {
             return _textValue;
@@ -295,8 +295,7 @@ public abstract class AvroParser extends ParserBase
     }
 
     @Override
-    public String getCurrentName() throws IOException, JsonParseException
-    {
+    public String getCurrentName() throws IOException {
         return _avroContext.getCurrentName();
     }
 
@@ -319,19 +318,19 @@ public abstract class AvroParser extends ParserBase
     }
     
     @Override
-    public char[] getTextCharacters() throws IOException, JsonParseException {
+    public char[] getTextCharacters() throws IOException {
         String text = getText();
         return (text == null) ? null : text.toCharArray();
     }
 
     @Override
-    public int getTextLength() throws IOException, JsonParseException {
+    public int getTextLength() throws IOException {
         String text = getText();
         return (text == null) ? 0 : text.length();
     }
 
     @Override
-    public int getTextOffset() throws IOException, JsonParseException {
+    public int getTextOffset() throws IOException {
         return 0;
     }
     
@@ -342,12 +341,12 @@ public abstract class AvroParser extends ParserBase
      */
 
     @Override
-    public Object getEmbeddedObject() throws IOException, JsonParseException {
+    public Object getEmbeddedObject() throws IOException {
         return _binaryValue;
     }
     
     @Override
-    public byte[] getBinaryValue(Base64Variant variant) throws IOException, JsonParseException
+    public byte[] getBinaryValue(Base64Variant variant) throws IOException
     {
         if (_binaryValue == null) {
             if (_currToken != JsonToken.VALUE_STRING) {

@@ -6,9 +6,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.avro.io.BinaryDecoder;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.avro.AvroParser;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
@@ -48,7 +46,7 @@ public class AvroParserImpl extends AvroParser
      */
 
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException
+    public JsonToken nextToken() throws IOException
     {
         _binaryValue = null;
         if (_closed) {
@@ -57,6 +55,38 @@ public class AvroParserImpl extends AvroParser
         JsonToken t = _avroContext.nextToken();
         _currToken = t;
         return t;
+    }
+
+    @Override
+    public String nextFieldName() throws IOException
+    {
+        _binaryValue = null;
+        if (_closed) {
+            return null;
+        }
+        JsonToken t = _avroContext.nextToken();
+        _currToken = t;
+        return (t == JsonToken.FIELD_NAME) ? _avroContext.getCurrentName() : null;
+    }
+
+    @Override
+    public boolean nextFieldName(SerializableString sstr) throws IOException
+    {
+        _binaryValue = null;
+        if (_closed) {
+            return false;
+        }
+        JsonToken t = _avroContext.nextToken();
+        _currToken = t;
+        if (t == JsonToken.FIELD_NAME) {
+            return _avroContext.getCurrentName().equals(sstr.getValue());
+        }
+        return false;
+    }
+
+    @Override
+    public String nextTextValue() throws IOException {
+        return (nextToken() == JsonToken.VALUE_STRING) ? _textValue : null;
     }
     
     @Override
