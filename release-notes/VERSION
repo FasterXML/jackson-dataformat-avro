@@ -4,6 +4,10 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
+2.6.0 (not yet released)
+
+2.5.1 (not yet released)
+
 2.5.0 (01-Jan-2015)
 
 #11: Add convenience methods in `AvroMapper` for Schema-generation from POJO
