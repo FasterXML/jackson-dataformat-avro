@@ -59,9 +59,6 @@ public class RoundtripTest extends MapTest
         assertNotNull(avroData);
     }
 
-    /* 18-Nov-2014, tatu: Failing for 2.4; commenting out for now, will be fixed
-     *     in 2.5
-     */
     public void testIssue16() throws Exception
     {
         ObjectMapper mapper = new AvroMapper()
