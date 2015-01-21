@@ -1,5 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro.deser;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.core.JsonToken;
 
 public class MissingReader extends AvroReadContext
@@ -16,10 +18,20 @@ public class MissingReader extends AvroReadContext
         _reportError();
         return null;
     }
+
+    @Override
+    public JsonToken getCurrentToken() {
+        return null;
+    }
     
     @Override
     public void appendDesc(StringBuilder sb) {
         sb.append("?");
+    }
+
+    @Override
+    public String nextFieldName() throws IOException {
+        return null;
     }
 }
 

@@ -18,10 +18,9 @@ final class RecordReader extends AvroStructureReader
     private final BinaryDecoder _decoder;
     private final AvroParserImpl _parser;
 
-    private String _currentName;
+    protected String _currentName;
     
     protected int _state;
-//    protected int _index;
     protected final int _count;
     
     public RecordReader(AvroFieldWrapper[] fieldReaders) {
@@ -55,18 +54,30 @@ final class RecordReader extends AvroStructureReader
         case STATE_START:
             _parser.setAvroContext(this);
             _state = (_count > 0) ? STATE_NAME : STATE_END;
-            return JsonToken.START_OBJECT;
+            {
+                JsonToken t = JsonToken.START_OBJECT;
+                _currToken = t;
+                return t;
+            }
         case STATE_NAME:
             if (_index < _count) {
                 _currentName = _fieldReaders[_index].getName();
                 _state = STATE_VALUE;
-                return JsonToken.FIELD_NAME;
+                {
+                    JsonToken t = JsonToken.FIELD_NAME;
+                    _currToken = t;
+                    return t;
+                }
             }
             // done; fall through
         case STATE_END:
             _state = STATE_DONE;
             _parser.setAvroContext(getParent());
-            return JsonToken.END_OBJECT;
+            {
+                JsonToken t = JsonToken.END_OBJECT;
+                _currToken = t;
+                return t;
+            }
         case STATE_VALUE:
             break;
         case STATE_DONE:
@@ -76,9 +87,32 @@ final class RecordReader extends AvroStructureReader
         _state = STATE_NAME;
         AvroFieldWrapper field = _fieldReaders[_index];
         ++_index;
-        return field.readValue(this, _parser, _decoder);
+        JsonToken t = field.readValue(this, _parser, _decoder);
+        _currToken = t;
+        return t;
     }        
 
+    @Override
+    public String nextFieldName() throws IOException
+    {
+        if (_state == STATE_NAME) {
+            if (_index < _count) {
+                String name = _fieldReaders[_index].getName();
+                _currentName = name;
+                _state = STATE_VALUE;
+                _currToken = JsonToken.FIELD_NAME;
+                return name;
+            }
+            // falling through to STATE_END handling
+            _state = STATE_DONE;
+            _parser.setAvroContext(getParent());
+            _currToken = JsonToken.END_OBJECT;
+            return null;
+        }
+        nextToken();
+        return null;
+    }
+    
     @Override
     public void appendDesc(StringBuilder sb)
     {

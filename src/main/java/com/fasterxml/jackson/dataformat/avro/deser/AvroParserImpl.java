@@ -64,9 +64,13 @@ public class AvroParserImpl extends AvroParser
         if (_closed) {
             return null;
         }
-        JsonToken t = _avroContext.nextToken();
-        _currToken = t;
-        return (t == JsonToken.FIELD_NAME) ? _avroContext.getCurrentName() : null;
+        String name = _avroContext.nextFieldName();
+        if (name == null) {
+            _currToken = _avroContext.getCurrentToken();
+            return null;
+        }
+        _currToken = JsonToken.FIELD_NAME;
+        return name;
     }
 
     @Override
@@ -76,12 +80,13 @@ public class AvroParserImpl extends AvroParser
         if (_closed) {
             return false;
         }
-        JsonToken t = _avroContext.nextToken();
-        _currToken = t;
-        if (t == JsonToken.FIELD_NAME) {
-            return _avroContext.getCurrentName().equals(sstr.getValue());
+        String name = _avroContext.nextFieldName();
+        if (name == null) {
+            _currToken = _avroContext.getCurrentToken();
+            return false;
         }
-        return false;
+        _currToken = JsonToken.FIELD_NAME;
+        return name.equals(sstr.getValue());
     }
 
     @Override

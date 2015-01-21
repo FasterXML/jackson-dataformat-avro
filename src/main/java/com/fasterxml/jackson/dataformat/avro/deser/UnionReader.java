@@ -8,8 +8,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
 
 /**
- * Reader used in cases where union contains at least one non-scalar
- * type.
+ * Reader used in cases where union contains at least one non-scalar type.
  */
 final class UnionReader extends AvroStructureReader
 {
@@ -53,9 +52,17 @@ final class UnionReader extends AvroStructureReader
             // also: must pass our parent (not this instance)
             _currentReader = _memberReaders[index].newReader(_parent, _parser, _decoder);
         }
-        return _currentReader.nextToken();
+        JsonToken t = _currentReader.nextToken();
+        _currToken = t;
+        return t;
     }
 
+    @Override
+    public String nextFieldName() throws IOException {
+        nextToken();
+        return null;
+    }
+    
     @Override
     protected void appendDesc(StringBuilder sb) {
         sb.append('?');

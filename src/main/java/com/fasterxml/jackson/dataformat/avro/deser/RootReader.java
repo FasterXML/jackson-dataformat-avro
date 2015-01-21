@@ -19,9 +19,19 @@ public final class RootReader extends AvroReadContext
     public JsonToken nextToken() throws IOException {
         return null;
     }
-    
+
+    @Override
+    public JsonToken getCurrentToken() {
+        return null;
+    }
+
     @Override
     public void appendDesc(StringBuilder sb) {
         sb.append("/");
+    }
+
+    @Override
+    public String nextFieldName() throws IOException {
+        return null;
     }
 }

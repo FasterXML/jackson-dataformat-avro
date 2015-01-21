@@ -27,6 +27,8 @@ public abstract class AvroReadContext extends JsonStreamContext
 
     public abstract JsonToken nextToken() throws IOException;
     
+    public abstract String nextFieldName() throws IOException;
+
     /*
     /**********************************************************************
     /* Accessors
@@ -36,6 +38,8 @@ public abstract class AvroReadContext extends JsonStreamContext
     @Override
     public String getCurrentName() { return null; }
 
+    public abstract JsonToken getCurrentToken();
+    
     @Override
     public final AvroReadContext getParent() { return _parent; }
     

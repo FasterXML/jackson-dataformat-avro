@@ -20,9 +20,9 @@ public final class MapReader extends AvroStructureReader
     protected final AvroParserImpl _parser;
 
     private String _currentName;
-    
+    protected JsonToken _currToken;
+
     protected int _state;
-//    protected long _index;
     protected long _count;
     
     public MapReader(AvroScalarReader reader) {
@@ -95,7 +95,13 @@ public final class MapReader extends AvroStructureReader
         AvroStructureReader r = _structureReader.newReader(this, _parser, _decoder);
         _parser.setAvroContext(r);
         return r.nextToken();
-    }        
+    }
+
+    @Override
+    public String nextFieldName() throws IOException {
+        nextToken();
+        return null;
+    }
 
     @Override
     public void appendDesc(StringBuilder sb)

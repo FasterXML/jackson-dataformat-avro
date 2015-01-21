@@ -13,6 +13,8 @@ import com.fasterxml.jackson.core.JsonToken;
 public abstract class AvroStructureReader
     extends AvroReadContext
 {
+    protected JsonToken _currToken;
+
     protected AvroStructureReader(AvroReadContext parent, int type) {
         super(parent);
         _type = type;
@@ -34,6 +36,11 @@ public abstract class AvroStructureReader
     @Override
     public abstract JsonToken nextToken() throws IOException;
 
+    @Override
+    public final JsonToken getCurrentToken() {
+        return _currToken;
+    }
+    
     protected void throwIllegalState(int state) {
         throw new IllegalStateException("Illegal state for reader of type "
                 +getClass().getName()+": "+state);
@@ -42,5 +49,4 @@ public abstract class AvroStructureReader
     protected <T> T _throwUnsupported() {
         throw new IllegalStateException("Can not call on "+getClass().getName());
     }
-
 }

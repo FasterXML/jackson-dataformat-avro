@@ -12,8 +12,6 @@ final class ScalarReaderWrapper extends AvroStructureReader
     private final BinaryDecoder _decoder;
     private final AvroParserImpl _parser;
 
-    protected boolean _completed;
-    
     public ScalarReaderWrapper(AvroScalarReader wrappedReader) {
         this(wrappedReader, null, null);
     }
@@ -35,15 +33,22 @@ final class ScalarReaderWrapper extends AvroStructureReader
     @Override
     public JsonToken nextToken() throws IOException
     {
-        if (_completed) {
-            return null;
+        if (_currToken == null) {
+            JsonToken t = _wrappedReader.readValue(_parser, _decoder);
+            _currToken = t;
+            return t;
         }
-        _completed = true;
-        return _wrappedReader.readValue(_parser, _decoder);
+        return null;
     }
 
     @Override
     protected void appendDesc(StringBuilder sb) {
         sb.append('?');
+    }
+
+    @Override
+    public String nextFieldName() throws IOException {
+        nextToken();
+        return null;
     }
 }
