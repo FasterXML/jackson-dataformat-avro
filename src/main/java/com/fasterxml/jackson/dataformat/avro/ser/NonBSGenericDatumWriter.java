@@ -18,7 +18,7 @@ public class NonBSGenericDatumWriter<D>
 	public NonBSGenericDatumWriter(Schema root) {
 		super(root);
 	}
-	
+
 	@Override
 	public int resolveUnion(Schema union, Object datum) {
 		// Alas, we need a work-around first...

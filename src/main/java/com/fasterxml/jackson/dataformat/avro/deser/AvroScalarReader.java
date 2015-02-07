@@ -53,30 +53,25 @@ public abstract class AvroScalarReader
     
     protected final static class BytesReader extends AvroScalarReader
     {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) throws IOException
-        {
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) throws IOException {
             ByteBuffer bb = parser.borrowByteBuffer();
             bb = decoder.readBytes(bb);
             return parser.setBytes(bb);
         }
     }
-    
-    protected final static class DoubleReader
-        extends AvroScalarReader
+
+    protected final static class DoubleReader extends AvroScalarReader
     {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-            throws IOException
-        {
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) throws IOException {
             return parser.setNumber(decoder.readDouble());
         }
     }
     
-    protected final static class FloatReader
-        extends AvroScalarReader
-    {
-        @Override public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder)
-                throws IOException
-        {
+    protected final static class FloatReader extends AvroScalarReader {
+        @Override
+        public JsonToken readValue(AvroParserImpl parser, BinaryDecoder decoder) throws IOException {
             return parser.setNumber(decoder.readFloat());
         }
     }
@@ -141,8 +136,7 @@ public abstract class AvroScalarReader
     {
         protected final int _size;
         
-        public FixedDecoder(Schema schema)
-        {
+        public FixedDecoder(Schema schema) {
             _size = schema.getFixedSize();
         }
         
