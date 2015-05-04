@@ -20,7 +20,6 @@ public final class MapReader extends AvroStructureReader
     protected final AvroParserImpl _parser;
 
     private String _currentName;
-    protected JsonToken _currToken;
 
     protected int _state;
     protected long _count;
@@ -99,7 +98,10 @@ public final class MapReader extends AvroStructureReader
 
     @Override
     public String nextFieldName() throws IOException {
-        nextToken();
+        JsonToken t = nextToken();
+        if (t == JsonToken.FIELD_NAME) {
+            return _currentName;
+        }
         return null;
     }
 
