@@ -10,6 +10,7 @@ import junit.framework.TestCase;
 import org.apache.avro.Schema;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 
@@ -214,6 +215,18 @@ public abstract class AvroTestBase extends TestCase
     }
     protected byte[] toAvro(Employee empl, ObjectMapper mapper) throws IOException {
         return mapper.writer(getEmployeeSchema()).writeValueAsBytes(empl);
+    }
+
+    protected void assertToken(JsonToken expToken, JsonToken actToken)
+    {
+        if (actToken != expToken) {
+            fail("Expected token "+expToken+", current token "+actToken);
+        }
+    }
+
+    protected void assertToken(JsonToken expToken, JsonParser jp)
+    {
+        assertToken(expToken, jp.getCurrentToken());
     }
 
     protected void verifyException(Throwable e, String... matches)

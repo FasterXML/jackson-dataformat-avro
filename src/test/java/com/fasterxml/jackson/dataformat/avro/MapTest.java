@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.*;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MapTest extends AvroTestBase
@@ -29,6 +31,10 @@ public class MapTest extends AvroTestBase
             ;
     static class Container {
         public Map<String,String> stuff = new LinkedHashMap<String,String>();
+
+        public void setStuff(Map<String,String> arg) {
+            stuff = arg;
+        }
     }
 
     public void testSimple() throws Exception
@@ -51,7 +57,36 @@ public class MapTest extends AvroTestBase
 
         assertEquals(16, bytes.length); // measured to be current exp size
 
-        // and then back
+        // and then back. Start with streaming
+        JsonParser p = mapper.getFactory().createParser(bytes);
+        p.setSchema(schema);
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        assertEquals("stuff", p.getCurrentName());
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+
+        String n = p.nextFieldName();
+
+        // NOTE: Avro codec does NOT retain ordering, need to accept either ordering
+
+        if (!"a".equals(n) && !"foo".equals(n)) {
+            fail("Should get 'foo' or 'a', got '"+n+"'");
+        }
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+
+        n = p.nextFieldName();
+        if (!"a".equals(n) && !"foo".equals(n)) {
+            fail("Should get 'foo' or 'a', got '"+n+"'");
+        }
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        assertNull(p.nextToken());
+        
+        p.close();
+
+        // and then databind
         Container output = mapper.reader(Container.class).with(schema)
                 .readValue(bytes);
         assertNotNull(output);
