@@ -26,7 +26,7 @@ public class ComplexPojoTest extends AvroTestBase
         assertNotNull(avro);
         assertEquals(243, avro.length);
 
-        MediaItem output = MAPPER.reader(MediaItem.class)
+        MediaItem output = MAPPER.readerFor(MediaItem.class)
                 .with(schema)
                 .readValue(avro);
         assertNotNull(output);

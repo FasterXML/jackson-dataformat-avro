@@ -6,7 +6,8 @@ import org.junit.Assert;
 import java.io.IOException;
 import java.util.Random;
 
-public class FixedFieldTest extends AvroTestBase {
+public class FixedFieldTest extends AvroTestBase
+{
     private static final String FIXED_SCHEMA_JSON = "{\n"
             + "    \"type\": \"record\",\n"
             + "    \"name\": \"WithFixedField\",\n"
@@ -23,7 +24,7 @@ public class FixedFieldTest extends AvroTestBase {
         byte[] bytes = {0, 1, 2, (byte) new Random().nextInt(256)};
         in.fixedField = bytes;
         byte[] serialized = mapper.writer(schema).writeValueAsBytes(in);
-        WithFixedField deser = mapper.reader(WithFixedField.class).with(schema).readValue(serialized);
+        WithFixedField deser = mapper.readerFor(WithFixedField.class).with(schema).readValue(serialized);
         Assert.assertArrayEquals(bytes, deser.fixedField);
     }
 

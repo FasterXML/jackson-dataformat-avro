@@ -101,7 +101,7 @@ public class TestSimpleGeneration extends AvroTestBase
         assertNotNull(bytes);
         
         // and bring it back, too
-        Employee e2 = getMapper().reader(Employee.class)
+        Employee e2 = getMapper().readerFor(Employee.class)
             .with(schema)
             .readValue(bytes);
         assertNotNull(e2);

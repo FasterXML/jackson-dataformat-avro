@@ -119,7 +119,7 @@ abstract class PerfBase
         avroMapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
         itemSchema = itemSchema();
         itemReader = avroMapper
-                .reader(MediaItem.class)
+                .readerFor(MediaItem.class)
                 .with(itemSchema);
         itemWriter = avroMapper
                 .writerFor(MediaItem.class)

@@ -41,7 +41,7 @@ public final class DeserPerf extends PerfBase
 
         final ObjectReader avroReader = itemReader;
         final ObjectMapper jsonMapper = new ObjectMapper();
-        final ObjectReader jsonReader = jsonMapper.reader(MediaItem.class);
+        final ObjectReader jsonReader = jsonMapper.readerFor(MediaItem.class);
         
         int round = 0;
         while (true) {

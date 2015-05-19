@@ -87,7 +87,7 @@ public class MapTest extends AvroTestBase
         p.close();
 
         // and then databind
-        Container output = mapper.reader(Container.class).with(schema)
+        Container output = mapper.readerFor(Container.class).with(schema)
                 .readValue(bytes);
         assertNotNull(output);
         assertNotNull(output.stuff);
@@ -120,7 +120,7 @@ public class MapTest extends AvroTestBase
         assertEquals(1, bytes.length); // measured to be current exp size
 
         // and then back
-        Container output = mapper.reader(Container.class).with(schema)
+        Container output = mapper.readerFor(Container.class).with(schema)
                 .readValue(bytes);
         assertNotNull(output);
         assertNull(output.stuff);
@@ -134,7 +134,7 @@ public class MapTest extends AvroTestBase
         assertEquals(7, bytes.length); // measured to be current exp size
 
         // and then back
-        output = mapper.reader(Container.class).with(schema)
+        output = mapper.readerFor(Container.class).with(schema)
                 .readValue(bytes);
         assertNotNull(output);
         assertNotNull(output.stuff);

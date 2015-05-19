@@ -30,7 +30,7 @@ public class EnumTest extends AvroTestBase
         assertEquals(1, bytes.length); // measured to be current exp size
 
         // and then back
-        Employee output = MAPPER.reader(Employee.class).with(schema)
+        Employee output = MAPPER.readerFor(Employee.class).with(schema)
                 .readValue(bytes);
         assertNotNull(output);
         assertEquals(Gender.F, output.gender);
