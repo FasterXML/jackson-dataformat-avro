@@ -175,15 +175,24 @@ public class AvroGenerator extends GeneratorBase
         return _output;
     }
 
+    /**
+     * Unfortunately we have no visibility into buffering Avro codec does;
+     * and need to return <code>-1</code> to reflect that lack of knowledge.
+     */
+    @Override
+    public int getOutputBuffered() {
+        return -1;
+    }
+
     @Override
     public boolean canUseSchema(FormatSchema schema) {
         return (schema instanceof AvroSchema);
     }
-    
+
     @Override public AvroSchema getSchema() {
         return _rootSchema;
     }
-    
+
     @Override
     public void setSchema(FormatSchema schema)
     {
