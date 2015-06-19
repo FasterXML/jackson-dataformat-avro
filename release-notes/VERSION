@@ -18,6 +18,8 @@ No changes since 2.5.0
 #12: Problem serializing optional Enum (in union)
 #14: Support serializing "fixed" fields
  (contributed by Josh G)
+#15: AvroSchemaGenerator should support generation of "fixed" field-types
+ (contributed by Josh G)
 - Upgrade to Avro 1.7.7
 - Deprecate `AvroGenerator.Feature.IGNORE_UNKWNOWN` (mis-spellt, but more
   importantly obsoleted by addition of `JsonGenerator.Feature.IGNORE_UNKNOWN`)
