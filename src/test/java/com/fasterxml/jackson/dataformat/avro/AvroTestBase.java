@@ -7,8 +7,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.apache.avro.Schema;
-
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -182,7 +180,7 @@ public abstract class AvroTestBase extends TestCase
 
     protected AvroSchema _employeeSchema;
 
-    protected ObjectMapper _sharedMapper;
+    protected AvroMapper _sharedMapper;
 
     protected AvroTestBase() { }
 
@@ -192,24 +190,24 @@ public abstract class AvroTestBase extends TestCase
     /**********************************************************
      */
 
-    protected AvroSchema getEmployeeSchema() {
+    protected AvroSchema getEmployeeSchema() throws IOException {
         if (_employeeSchema == null) {
-            _employeeSchema = parseSchema(EMPLOYEE_SCHEMA_JSON);
+            _employeeSchema = getMapper().schemaFrom(EMPLOYEE_SCHEMA_JSON);
         }
         return _employeeSchema;
     }
 
-    protected static AvroSchema parseSchema(String schemaJson) {
-        return new AvroSchema(new Schema.Parser().setValidate(true).parse(schemaJson));        
-    }
-
-    protected ObjectMapper getMapper() {
+    protected AvroMapper getMapper() {
         if (_sharedMapper == null) {
-            _sharedMapper = new AvroMapper();
+            _sharedMapper = newMapper();
         }
         return _sharedMapper;
     }
 
+    protected AvroMapper newMapper() {
+        return new AvroMapper();
+    }
+    
     protected byte[] toAvro(Employee empl) throws IOException {
         return toAvro(empl, getMapper());
     }

@@ -5,8 +5,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 import com.fasterxml.jackson.dataformat.avro.AvroFixedSize;
+import com.fasterxml.jackson.dataformat.avro.AvroMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 import com.fasterxml.jackson.dataformat.avro.AvroTestBase;
+
 import org.apache.avro.Schema;
 
 import java.nio.ByteBuffer;
@@ -61,7 +63,7 @@ public class TestSimpleGeneration extends AvroTestBase
     
     public void testBasic() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+        AvroMapper mapper = getMapper();
         AvroSchemaGenerator gen = new AvroSchemaGenerator();
         mapper.acceptJsonFormatVisitor(RootType.class, gen);
         AvroSchema schema = gen.getGeneratedSchema();
@@ -71,7 +73,7 @@ public class TestSimpleGeneration extends AvroTestBase
         assertNotNull(json);
 
         // And read it back too just for fun
-        AvroSchema s2 = parseSchema(json);
+        AvroSchema s2 = mapper.schemaFrom(json);
         assertNotNull(s2);
         
 //        System.out.println("Basic schema:\n"+json);
@@ -79,7 +81,7 @@ public class TestSimpleGeneration extends AvroTestBase
 
     public void testEmployee() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+        AvroMapper mapper = getMapper();
         AvroSchemaGenerator gen = new AvroSchemaGenerator();
         mapper.acceptJsonFormatVisitor(Employee.class, gen);
         AvroSchema schema = gen.getGeneratedSchema();
@@ -87,7 +89,7 @@ public class TestSimpleGeneration extends AvroTestBase
 
         String json = schema.getAvroSchema().toString(true);        
         assertNotNull(json);
-        AvroSchema s2 = parseSchema(json);
+        AvroSchema s2 = mapper.schemaFrom(json);
         assertNotNull(s2);
         
         Employee empl = new Employee();
@@ -111,7 +113,7 @@ public class TestSimpleGeneration extends AvroTestBase
 
     public void testMap() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+        AvroMapper mapper = getMapper();
         AvroSchemaGenerator gen = new AvroSchemaGenerator();
         mapper.acceptJsonFormatVisitor(StringMap.class, gen);
         AvroSchema schema = gen.getGeneratedSchema();
@@ -119,7 +121,7 @@ public class TestSimpleGeneration extends AvroTestBase
 
         String json = schema.getAvroSchema().toString(true);
         assertNotNull(json);
-        AvroSchema s2 = parseSchema(json);
+        AvroSchema s2 = mapper.schemaFrom(json);
         assertNotNull(s2);
 
         // should probably verify, maybe... ?

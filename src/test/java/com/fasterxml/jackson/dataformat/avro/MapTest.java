@@ -6,7 +6,6 @@ import java.util.*;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class MapTest extends AvroTestBase
 {
@@ -39,8 +38,8 @@ public class MapTest extends AvroTestBase
 
     public void testSimple() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-        AvroSchema schema = parseSchema(MAP_SCHEMA_JSON);
+        AvroMapper mapper = getMapper();
+        AvroSchema schema = mapper.schemaFrom(MAP_SCHEMA_JSON);
         Container input = new Container();
         input.stuff.put("foo", "bar");
         input.stuff.put("a", "b");
@@ -110,8 +109,8 @@ public class MapTest extends AvroTestBase
 
     public void testMapOrNull() throws Exception
     {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-        AvroSchema schema = parseSchema(MAP_OR_NULL_SCHEMA_JSON);
+        AvroMapper mapper = getMapper();
+        AvroSchema schema = mapper.schemaFrom(MAP_OR_NULL_SCHEMA_JSON);
         Container input = new Container();
         input.stuff = null;
 

@@ -26,7 +26,7 @@ public class RoundtripTest extends MapTest
     static AvroSchema ISSUE_16_SCHEMA;
     static {
         try {
-            ISSUE_16_SCHEMA = parseSchema(SCHEMA_ISSUE_16);
+            ISSUE_16_SCHEMA = new AvroMapper().schemaFrom(SCHEMA_ISSUE_16);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

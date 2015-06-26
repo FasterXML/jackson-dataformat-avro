@@ -21,7 +21,7 @@ public class EnumTest extends AvroTestBase
     
     public void testSimple() throws Exception
     {
-        AvroSchema schema = parseSchema(ENUM_SCHEMA_JSON);
+        AvroSchema schema = MAPPER.schemaFrom(ENUM_SCHEMA_JSON);
         Employee input = new Employee();
         input.gender = Gender.F;
 

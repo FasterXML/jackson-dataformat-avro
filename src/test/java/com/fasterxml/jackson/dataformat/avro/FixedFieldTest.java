@@ -1,6 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 
 import java.io.IOException;
@@ -17,8 +16,8 @@ public class FixedFieldTest extends AvroTestBase
             + "}";
 
     public void testFixedField() throws IOException {
-        ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-        AvroSchema schema = parseSchema(FIXED_SCHEMA_JSON);
+        AvroMapper mapper = getMapper();
+        AvroSchema schema = mapper.schemaFrom(FIXED_SCHEMA_JSON);
 
         WithFixedField in = new WithFixedField();
         byte[] bytes = {0, 1, 2, (byte) new Random().nextInt(256)};

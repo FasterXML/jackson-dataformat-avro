@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import org.junit.Assert;
 
@@ -12,7 +13,7 @@ import com.fasterxml.jackson.dataformat.avro.AvroFactory;
 
 public class SimpleGenerationTest extends AvroTestBase
 {
-    protected final String SCHEMA_WITH_BINARY_JSON = "{\n"
+    protected final String SCHEMA_WITH_BINARY_JSON_SRC = "{\n"
             +"\"type\": \"record\",\n"
             +"\"name\": \"Binary\",\n"
             +"\"fields\": [\n"
@@ -57,6 +58,13 @@ public class SimpleGenerationTest extends AvroTestBase
         }
     }
 
+    private final AvroSchema SCHEMA_WITH_BINARY_JSON;
+    
+    public SimpleGenerationTest() throws IOException
+    {
+        SCHEMA_WITH_BINARY_JSON = getMapper().schemaFrom(SCHEMA_WITH_BINARY_JSON_SRC);
+    }
+    
     /*
     /**********************************************************
     /* Test methods
@@ -90,12 +98,11 @@ public class SimpleGenerationTest extends AvroTestBase
     public void testBinaryOk() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper(new AvroFactory());
-        AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
         Binary bin = new Binary("Foo", new byte[] { 1, 2, 3, 4 });
-        byte[] bytes = mapper.writer(schema).writeValueAsBytes(bin);
+        byte[] bytes = mapper.writer(SCHEMA_WITH_BINARY_JSON).writeValueAsBytes(bin);
         assertEquals(9, bytes.length);
         assertNotNull(bytes);
-        Binary output = mapper.reader(schema).forType(Binary.class).readValue(bytes);
+        Binary output = mapper.reader(SCHEMA_WITH_BINARY_JSON).forType(Binary.class).readValue(bytes);
         assertNotNull(output);
         assertEquals("Foo", output.name);
         assertNotNull(output.value);
@@ -108,11 +115,10 @@ public class SimpleGenerationTest extends AvroTestBase
         AvroFactory af = new AvroFactory();
         ObjectMapper mapper = new ObjectMapper(af);
         // we can repurpose "Binary" from above for schema
-        AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
         BinaryAndNumber input = new BinaryAndNumber("Bob", 15);
         JsonGenerator gen = mapper.getFactory().createGenerator(new ByteArrayOutputStream());
         try {
-             mapper.writer(schema).writeValue(gen, input);
+             mapper.writer(SCHEMA_WITH_BINARY_JSON).writeValue(gen, input);
              fail("Should have thrown exception");
         } catch (JsonMappingException e) {
             verifyException(e, "no field named");
@@ -123,12 +129,12 @@ public class SimpleGenerationTest extends AvroTestBase
 
         gen = mapper.getFactory().createGenerator(new ByteArrayOutputStream());
         ByteArrayOutputStream b = new ByteArrayOutputStream();
-        mapper.writer(schema).writeValue(b, input);
+        mapper.writer(SCHEMA_WITH_BINARY_JSON).writeValue(b, input);
         byte[] bytes = b.toByteArray();
         assertEquals(6, bytes.length);
 
         // and should be able to get it back too
-        BinaryAndNumber output = mapper.reader(schema).forType(BinaryAndNumber.class).readValue(bytes);
+        BinaryAndNumber output = mapper.reader(SCHEMA_WITH_BINARY_JSON).forType(BinaryAndNumber.class).readValue(bytes);
         assertEquals("Bob", output.name);
     }
 
@@ -136,11 +142,10 @@ public class SimpleGenerationTest extends AvroTestBase
     {
         AvroFactory af = new AvroFactory();
         ObjectMapper mapper = new ObjectMapper(af);
-        AvroSchema schema = parseSchema(SCHEMA_WITH_BINARY_JSON);
 
         BinaryAndArray input = new BinaryAndArray("Bob");
         try {
-             mapper.writer(schema).writeValueAsBytes(input);
+             mapper.writer(SCHEMA_WITH_BINARY_JSON).writeValueAsBytes(input);
              fail("Should have thrown exception");
         } catch (JsonMappingException e) {
             verifyException(e, "no field named 'stuff'");
@@ -148,11 +153,11 @@ public class SimpleGenerationTest extends AvroTestBase
 
         // But should be fine if (and only if!) we enable support for skipping
         af.enable(JsonGenerator.Feature.IGNORE_UNKNOWN);
-        byte[] bytes = mapper.writer(schema).writeValueAsBytes(input);
+        byte[] bytes = mapper.writer(SCHEMA_WITH_BINARY_JSON).writeValueAsBytes(input);
         assertEquals(6, bytes.length);
 
         // and should be able to get it back too
-        BinaryAndNumber output = mapper.reader(schema).forType(BinaryAndNumber.class).readValue(bytes);
+        BinaryAndNumber output = mapper.reader(SCHEMA_WITH_BINARY_JSON).forType(BinaryAndNumber.class).readValue(bytes);
         assertEquals("Bob", output.name);
     }
 }

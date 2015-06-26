@@ -1,5 +1,9 @@
 package com.fasterxml.jackson.dataformat.avro;
 
+import java.io.*;
+
+import org.apache.avro.Schema;
+
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -54,7 +58,7 @@ public class AvroMapper extends ObjectMapper
     {
         AvroSchemaGenerator gen = new AvroSchemaGenerator();
         acceptJsonFormatVisitor(type, gen);
-    	    return gen.getGeneratedSchema();
+        return gen.getGeneratedSchema();
     }
 
     /**
@@ -65,5 +69,45 @@ public class AvroMapper extends ObjectMapper
         AvroSchemaGenerator gen = new AvroSchemaGenerator();
         acceptJsonFormatVisitor(type, gen);
         return gen.getGeneratedSchema();
+    }
+
+    /**
+     * Method for reading an Avro Schema from given {@link InputStream},
+     * and once done (successfully or not), closing the stream.
+     *
+     * @since 2.6
+     */
+    public AvroSchema schemaFrom(InputStream in) throws IOException
+    {
+        try {
+            return new AvroSchema(new Schema.Parser().setValidate(true)
+                    .parse(in));
+        } finally {
+            in.close();
+        }
+    }
+
+    /**
+     * Convenience method for reading {@link AvroSchema} from given
+     * encoded JSON representation.
+     *
+     * @since 2.6
+     */
+    public AvroSchema schemaFrom(String schemaAsString) throws IOException
+    {
+        return new AvroSchema(new Schema.Parser().setValidate(true)
+                .parse(schemaAsString));
+    }
+
+    /**
+     * Convenience method for reading {@link AvroSchema} from given
+     * encoded JSON representation.
+     *
+     * @since 2.6
+     */
+    public AvroSchema schemaFrom(File schemaFile) throws IOException
+    {
+        return new AvroSchema(new Schema.Parser().setValidate(true)
+                .parse(schemaFile));
     }
 }
