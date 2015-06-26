@@ -37,7 +37,7 @@ public final class ObjectWriteContext
         _verifyValueWrite();
         Schema.Field field = _findField();
         if (field == null) { // unknown, to ignore
-            return new NopWriteContext(this, _generator);
+            return new NopWriteContext(TYPE_ARRAY, this, _generator);
         }
         AvroWriteContext child = new ArrayWriteContext(this, _generator, _createArray(field.schema()));
         _record.put(_currentName, child.rawValue());
@@ -50,7 +50,7 @@ public final class ObjectWriteContext
         _verifyValueWrite();
         Schema.Field field = _findField();
         if (field == null) { // unknown, to ignore
-            return new NopWriteContext(this, _generator);
+            return new NopWriteContext(TYPE_OBJECT, this, _generator);
         }
         AvroWriteContext child = _createObjectContext(field.schema());
         _record.put(_currentName, child.rawValue());
