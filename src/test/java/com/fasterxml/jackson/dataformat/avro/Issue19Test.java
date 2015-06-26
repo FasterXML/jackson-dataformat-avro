@@ -90,6 +90,7 @@ public class Issue19Test extends AvroTestBase
         // And if that works, use a subset
         InputStream in = getClass().getResourceAsStream("issue19.avsc");
         AvroSchema partialSchema = mapper.schemaFrom(in);
+        in.close(); // just prevent compiler from warning
 
         byte[] encoded2 = mapper.writer(partialSchema).writeValueAsBytes(input);
         assertNotNull(encoded2);
