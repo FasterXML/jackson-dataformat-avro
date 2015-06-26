@@ -6,6 +6,12 @@ Project: jackson-dataformat-avro
 
 2.6.0 (not yet released)
 
+2.5.5 (not yet released)
+
+#19: "Current context not an object but ARRAY" when encountering nested object and using
+  JsonGenerator.Feature.IGNORE_UNKNOWN = true
+ (reported by Sterling Hm shoeree@github)
+
 2.5.4 (09-Jun-2015)
 2.5.3 (24-Apr-2015)
 2.5.2 (29-Mar-2015)

@@ -8,8 +8,8 @@ import com.fasterxml.jackson.dataformat.avro.AvroGenerator;
  */
 public class NopWriteContext extends AvroWriteContext
 {
-    public NopWriteContext(AvroWriteContext parent, AvroGenerator generator) {
-        super(TYPE_ARRAY, parent, generator, null);
+    public NopWriteContext(int type, AvroWriteContext parent, AvroGenerator generator) {
+        super(type, parent, generator, null);
     }
 
     @Override
@@ -17,12 +17,12 @@ public class NopWriteContext extends AvroWriteContext
 
     @Override
     public final AvroWriteContext createChildArrayContext() throws JsonMappingException {
-        return new NopWriteContext(this, _generator);
+        return new NopWriteContext(TYPE_ARRAY, this, _generator);
     }
     
     @Override
     public final AvroWriteContext createChildObjectContext() throws JsonMappingException {
-        return new NopWriteContext(this, _generator);
+        return new NopWriteContext(TYPE_OBJECT, this, _generator);
     }
     
     @Override
