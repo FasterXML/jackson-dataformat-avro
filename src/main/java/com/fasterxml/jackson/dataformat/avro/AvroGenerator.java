@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 public class AvroGenerator extends GeneratorBase
 {
     /**
-     * Enumeration that defines all togglable features for YAML generators
+     * Enumeration that defines all togglable features for Avro generators
      */
     public enum Feature {
         /**
@@ -162,8 +162,7 @@ public class AvroGenerator extends GeneratorBase
     }
 
     /**
-     * Not sure what to do here; will always indent, but uses
-     * YAML-specific settings etc.
+     * Not relevant, as binary formats typically have no indentation.
      */
     @Override
     public AvroGenerator setPrettyPrinter(PrettyPrinter pp) {
