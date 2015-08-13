@@ -21,6 +21,13 @@ public abstract class AvroParser extends ParserBase
      * Enumeration that defines all togglable features for Avro parsers.
      */
     public enum Feature {
+        /**
+         * Feature that can be disabled to prevent Avro from buffering any more
+         * data then absolutely necessary.
+         * 
+         * Enabled by default to preserve the existing behavior.
+         */
+        AVRO_BUFFERING(true)
         ;
 
         final boolean _defaultState;
