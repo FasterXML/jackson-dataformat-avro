@@ -48,17 +48,21 @@ public class AvroSchema implements FormatSchema
 
     public Schema getAvroSchema() { return _avroSchema; }
 
-    public static BinaryDecoder decoder(InputStream in)
+    public static BinaryDecoder decoder(InputStream in, Boolean buffering)
     {
         SoftReference<BinaryDecoder> ref = decoderRecycler.get();
         BinaryDecoder prev = (ref == null) ? null : ref.get();
-        
-        if (prev != null) {
-            return DECODER_FACTORY.binaryDecoder(in, prev);
-        }
-        prev = DECODER_FACTORY.binaryDecoder(in, null);
-        decoderRecycler.set(new SoftReference<BinaryDecoder>(prev));
-        return prev;
+        /* Factory will check if the decoder has a matching type for reuse.
+         * If not, it will drop the instance being reused and will return
+         * a new, proper one.
+         */
+        BinaryDecoder next =
+            buffering
+            ? DECODER_FACTORY.binaryDecoder(in, prev)
+            : DECODER_FACTORY.directBinaryDecoder(in, prev);
+
+        decoderRecycler.set(new SoftReference<BinaryDecoder>(next));
+        return next;
     }
 
     public static BinaryDecoder decoder(byte[] buffer, int offset, int len)
@@ -75,17 +79,22 @@ public class AvroSchema implements FormatSchema
     }
     
     
-    public static BinaryEncoder encoder(OutputStream out)
+    public static BinaryEncoder encoder(OutputStream out, boolean buffering)
     {
         SoftReference<BinaryEncoder> ref = encoderRecycler.get();
         BinaryEncoder prev = (ref == null) ? null : ref.get();
+        /* Factory will check if the encoder has a matching type for reuse.
+         * If not, it will drop the instance being reused and will return
+         * a new, proper one.
+         */
+        BinaryEncoder next =
+            buffering
+            ? ENCODER_FACTORY.binaryEncoder(out, prev)
+            : ENCODER_FACTORY.directBinaryEncoder(out, prev);
         
-        if (prev != null) {
-            return ENCODER_FACTORY.binaryEncoder(out, prev);
-        }
-        prev = ENCODER_FACTORY.binaryEncoder(out, null);
-        encoderRecycler.set(new SoftReference<BinaryEncoder>(prev));
-        return prev;
+        encoderRecycler.set(new SoftReference<BinaryEncoder>(next));
+
+        return next;
     }
 
     public AvroStructureReader getReader()

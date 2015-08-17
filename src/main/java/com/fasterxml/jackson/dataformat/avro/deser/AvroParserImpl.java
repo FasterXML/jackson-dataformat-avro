@@ -27,7 +27,7 @@ public class AvroParserImpl extends AvroParser
             ObjectCodec codec, InputStream in)
     {
         super(ctxt, parserFeatures, avroFeatures, codec, in);
-        _decoder = AvroSchema.decoder(in);
+        _decoder = AvroSchema.decoder(in, isEnabled(Feature.AVRO_BUFFERING));
     }
 
     public AvroParserImpl(IOContext ctxt, int parserFeatures, int avroFeatures,

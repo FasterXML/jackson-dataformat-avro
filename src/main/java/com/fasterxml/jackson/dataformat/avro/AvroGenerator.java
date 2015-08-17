@@ -32,7 +32,14 @@ public class AvroGenerator extends GeneratorBase
          *   which should be used instead
          */
         @Deprecated
-        IGNORE_UNKWNOWN(false)
+        IGNORE_UNKWNOWN(false),
+        /**
+         * Feature that can be disabled to prevent Avro from buffering any more
+         * data then absolutely necessary.
+         * 
+         * Enabled by default to preserve the existing behavior.
+         */
+        AVRO_BUFFERING(true)
         ;
 
         protected final boolean _defaultState;
@@ -549,7 +556,9 @@ public class AvroGenerator extends GeneratorBase
         if (_rootContext == null) {
         	return;
         }
-        BinaryEncoder encoder = AvroSchema.encoder(_output);
+        BinaryEncoder encoder = AvroSchema.encoder(
+            _output, isEnabled(Feature.AVRO_BUFFERING)
+        );
         _rootContext.complete(encoder);
         encoder.flush();
     }
