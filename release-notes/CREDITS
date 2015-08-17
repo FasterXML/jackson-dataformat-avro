@@ -15,4 +15,9 @@ Sterling Hoeree (shoeree@github)
   JsonGenerator.Feature.IGNORE_UNKNOWN = true
  (2.5.5)
 
+Alex Dubov (oakad@github)
+
+- Contributed #21: Add AVRO_BUFFERING feature (enabled by default/existing behavior)
+ (2.6.1)
+
 
