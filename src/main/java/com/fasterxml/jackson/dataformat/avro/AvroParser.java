@@ -24,8 +24,11 @@ public abstract class AvroParser extends ParserBase
         /**
          * Feature that can be disabled to prevent Avro from buffering any more
          * data then absolutely necessary.
-         * 
+         * This affects buffering by underlying `SnakeYAML` codec.
+         *<p>
          * Enabled by default to preserve the existing behavior.
+	 *
+	 * @since 2.7
          */
         AVRO_BUFFERING(true)
         ;
