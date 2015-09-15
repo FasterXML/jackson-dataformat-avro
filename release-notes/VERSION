@@ -9,6 +9,7 @@ Project: jackson-dataformat-avro
 #21: Add AVRO_BUFFERING feature (enabled by default/existing behavior)
  (contributed by Alex D)
 
+2.6.2 (15-Sep-2015)
 2.6.1 (09-Aug-2015)
 2.6.0 (19-Jul-2015)
 
