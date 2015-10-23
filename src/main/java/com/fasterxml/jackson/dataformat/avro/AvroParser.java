@@ -20,7 +20,9 @@ public abstract class AvroParser extends ParserBase
     /**
      * Enumeration that defines all togglable features for Avro parsers.
      */
-    public enum Feature {
+    public enum Feature
+        implements FormatFeature // since 2.7
+    {
         /**
          * Feature that can be disabled to prevent Avro from buffering any more
          * data then absolutely necessary.
@@ -35,7 +37,7 @@ public abstract class AvroParser extends ParserBase
 
         final boolean _defaultState;
         final int _mask;
-        
+
         /**
          * Method that calculates bit set (flags) of all features that
          * are enabled by default.
@@ -58,6 +60,7 @@ public abstract class AvroParser extends ParserBase
 
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
+        public boolean enabledIn(int flags) { return (flags & _mask) != 0; }
     }
 
     /*

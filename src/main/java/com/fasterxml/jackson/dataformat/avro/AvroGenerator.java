@@ -18,7 +18,9 @@ public class AvroGenerator extends GeneratorBase
     /**
      * Enumeration that defines all togglable features for Avro generators
      */
-    public enum Feature {
+    public enum Feature
+        implements FormatFeature // since 2.7
+    {
         /**
          * Feature that can be enabled to quietly ignore serialization of properties
          * that can not be mapped to output schema: if enabled, trying to output
