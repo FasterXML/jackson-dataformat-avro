@@ -27,8 +27,8 @@ public abstract class AvroParser extends ParserBase
          * This affects buffering by underlying `SnakeYAML` codec.
          *<p>
          * Enabled by default to preserve the existing behavior.
-	 *
-	 * @since 2.7
+         *
+         * @since 2.7
          */
         AVRO_BUFFERING(true)
         ;
@@ -55,26 +55,26 @@ public abstract class AvroParser extends ParserBase
             _defaultState = defaultState;
             _mask = (1 << ordinal());
         }
-        
+
         public boolean enabledByDefault() { return _defaultState; }
         public int getMask() { return _mask; }
     }
-    
+
     /*
     /**********************************************************************
     /* Configuration
     /**********************************************************************
      */
-    
+
     /**
      * Codec used for data binding when (if) requested.
      */
     protected ObjectCodec _objectCodec;
 
-    protected int _avroFeatures;
-
     protected AvroSchema _rootSchema;
-    
+
+    protected int _formatFeatures;
+
     /*
     /**********************************************************************
     /* Input sources
@@ -82,7 +82,7 @@ public abstract class AvroParser extends ParserBase
      */
 
     final protected InputStream _input;
-    
+
     /*
     /**********************************************************************
     /* State
@@ -90,24 +90,24 @@ public abstract class AvroParser extends ParserBase
      */
 
     protected AvroReadContext _avroContext;
-    
+
     /**
      * We need to keep track of text values.
      */
     protected String _textValue;
-    
+
     /*
     /**********************************************************************
     /* Life-cycle
     /**********************************************************************
      */
-    
+
     protected AvroParser(IOContext ctxt, int parserFeatures, int avroFeatures,
             ObjectCodec codec, InputStream in)
     {
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
-        _avroFeatures = avroFeatures;
+        _formatFeatures = avroFeatures;
         _input = in;
         _avroContext = MissingReader.instance;
     }
@@ -118,7 +118,7 @@ public abstract class AvroParser extends ParserBase
     {
         super(ctxt, parserFeatures);    
         _objectCodec = codec;
-        _avroFeatures = avroFeatures;
+        _formatFeatures = avroFeatures;
         _input = null;
         _avroContext = MissingReader.instance;
     }
@@ -137,7 +137,11 @@ public abstract class AvroParser extends ParserBase
     public Object getInputSource() {
         return _input;
     }
-    
+
+    // ensure impl defines
+    @Override
+    public abstract JsonParser overrideFormatFeatures(int values, int mask);
+
     /*                                                                                       
     /**********************************************************                              
     /* Versioned                                                                             
@@ -183,9 +187,8 @@ public abstract class AvroParser extends ParserBase
      * Method for enabling specified Avro feature
      * (check {@link Feature} for list of features)
      */
-    public JsonParser enable(AvroParser.Feature f)
-    {
-        _avroFeatures |= f.getMask();
+    public JsonParser enable(AvroParser.Feature f) {
+        _formatFeatures |= f.getMask();
         return this;
     }
 
@@ -193,9 +196,8 @@ public abstract class AvroParser extends ParserBase
      * Method for disabling specified Avro feature
      * (check {@link Feature} for list of features)
      */
-    public JsonParser disable(AvroParser.Feature f)
-    {
-        _avroFeatures &= ~f.getMask();
+    public JsonParser disable(AvroParser.Feature f) {
+        _formatFeatures &= ~f.getMask();
         return this;
     }
 
@@ -218,7 +220,7 @@ public abstract class AvroParser extends ParserBase
      * is enabled.
      */
     public boolean isEnabled(AvroParser.Feature f) {
-        return (_avroFeatures & f.getMask()) != 0;
+        return (_formatFeatures & f.getMask()) != 0;
     }
 
     @Override

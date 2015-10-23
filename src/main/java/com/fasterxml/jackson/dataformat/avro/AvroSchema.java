@@ -48,7 +48,7 @@ public class AvroSchema implements FormatSchema
 
     public Schema getAvroSchema() { return _avroSchema; }
 
-    public static BinaryDecoder decoder(InputStream in, Boolean buffering)
+    public static BinaryDecoder decoder(InputStream in, boolean buffering)
     {
         SoftReference<BinaryDecoder> ref = decoderRecycler.get();
         BinaryDecoder prev = (ref == null) ? null : ref.get();
@@ -56,8 +56,7 @@ public class AvroSchema implements FormatSchema
          * If not, it will drop the instance being reused and will return
          * a new, proper one.
          */
-        BinaryDecoder next =
-            buffering
+        BinaryDecoder next = buffering
             ? DECODER_FACTORY.binaryDecoder(in, prev)
             : DECODER_FACTORY.directBinaryDecoder(in, prev);
 

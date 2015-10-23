@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.avro.ser.AvroWriteContext;
+
 import org.apache.avro.io.BinaryEncoder;
 
 import java.io.IOException;
@@ -37,11 +38,11 @@ public class AvroGenerator extends GeneratorBase
         /**
          * Feature that can be disabled to prevent Avro from buffering any more
          * data then absolutely necessary.
-         * This affects buffering by underlying `SnakeYAML` codec.
+         * This affects buffering by underlying codec.
          *<p>
          * Enabled by default to preserve the existing behavior.
-	 *
-	 * @since 2.7
+         *
+         * @since 2.7
          */
         AVRO_BUFFERING(true)
         ;
@@ -91,7 +92,7 @@ public class AvroGenerator extends GeneratorBase
      * {@link AvroGenerator.Feature}s
      * are enabled.
      */
-    protected int _avroFeatures;
+    protected int _formatFeatures;
 
     protected AvroSchema _rootSchema;
     
@@ -131,7 +132,7 @@ public class AvroGenerator extends GeneratorBase
     {
         super(jsonFeatures, codec);
         _ioContext = ctxt;
-        _avroFeatures = avroFeatures;
+        _formatFeatures = avroFeatures;
         _output = output;
         _avroContext = AvroWriteContext.createNullContext();
     }
@@ -145,7 +146,7 @@ public class AvroGenerator extends GeneratorBase
         // start with temporary root...
         _avroContext = _rootContext = AvroWriteContext.createRootContext(this, schema.getAvroSchema());
     }
-    
+
     /*                                                                                       
     /**********************************************************                              
     /* Versioned                                                                             
@@ -212,7 +213,49 @@ public class AvroGenerator extends GeneratorBase
         }
         setSchema((AvroSchema) schema);
     }
-    
+
+    /*
+    /**********************************************************
+    /* Extended API, configuration
+    /**********************************************************
+     */
+
+    public AvroGenerator enable(Feature f) {
+        _formatFeatures |= f.getMask();
+        return this;
+    }
+
+    public AvroGenerator disable(Feature f) {
+        _formatFeatures &= ~f.getMask();
+        return this;
+    }
+
+    public final boolean isEnabled(Feature f) {
+        return (_formatFeatures & f.getMask()) != 0;
+    }
+
+    public AvroGenerator configure(Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+    @Override
+    public JsonGenerator overrideFormatFeatures(int values, int mask) {
+        int oldF = _formatFeatures;
+        int newF = (_formatFeatures & ~mask) | (values & mask);
+
+        if (oldF != newF) {
+            _formatFeatures = newF;
+            // 22-Oct-2015, tatu: Actually, not way to change buffering details at
+            //   this point. If change needs to be dynamic have to change it
+        }
+        return this;
+    }
+
     /*
     /**********************************************************************
     /* Overridden methods; writing field names
@@ -242,35 +285,6 @@ public class AvroGenerator extends GeneratorBase
     {
         _avroContext.writeFieldName(fieldName);
         writeString(value);
-    }
-    
-    /*
-    /**********************************************************
-    /* Extended API, configuration
-    /**********************************************************
-     */
-
-    public AvroGenerator enable(Feature f) {
-        _avroFeatures |= f.getMask();
-        return this;
-    }
-
-    public AvroGenerator disable(Feature f) {
-        _avroFeatures &= ~f.getMask();
-        return this;
-    }
-
-    public final boolean isEnabled(Feature f) {
-        return (_avroFeatures & f.getMask()) != 0;
-    }
-
-    public AvroGenerator configure(Feature f, boolean state) {
-        if (state) {
-            enable(f);
-        } else {
-            disable(f);
-        }
-        return this;
     }
 
     /*

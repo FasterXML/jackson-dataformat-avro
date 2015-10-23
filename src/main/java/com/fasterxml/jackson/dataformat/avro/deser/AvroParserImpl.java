@@ -22,7 +22,7 @@ public class AvroParserImpl extends AvroParser
     protected final BinaryDecoder _decoder;
 
     protected ByteBuffer _byteBuffer;
-    
+
     public AvroParserImpl(IOContext ctxt, int parserFeatures, int avroFeatures,
             ObjectCodec codec, InputStream in)
     {
@@ -39,6 +39,19 @@ public class AvroParserImpl extends AvroParser
         _decoder = AvroSchema.decoder(data, offset, len);
     }
 
+    @Override
+    public JsonParser overrideFormatFeatures(int values, int mask) {
+        int oldF = _formatFeatures;
+        int newF = (_formatFeatures & ~mask) | (values & mask);
+
+        if (oldF != newF) {
+            _formatFeatures = newF;
+            // 22-Oct-2015, tatu: Actually, not way to change buffering details at
+            //   this point. If change needs to be dynamic have to change it
+        }
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Abstract method impls
