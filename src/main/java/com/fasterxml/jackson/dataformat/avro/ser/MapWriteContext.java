@@ -46,7 +46,7 @@ public final class MapWriteContext
     public final AvroWriteContext createChildObjectContext() throws JsonMappingException
     {
         _verifyValueWrite();
-        AvroWriteContext child = _createObjectContext(_schema.getElementType());
+        AvroWriteContext child = _createObjectContext(_schema.getValueType());
         _data.put(_currentName, child.rawValue());
         return child;
     }
