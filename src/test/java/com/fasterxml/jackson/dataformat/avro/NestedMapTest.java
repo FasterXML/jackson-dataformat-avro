@@ -1,7 +1,5 @@
 package com.fasterxml.jackson.dataformat.avro;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.util.Map;
 
@@ -9,23 +7,22 @@ import org.apache.avro.Schema;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.fasterxml.jackson.dataformat.avro.AvroMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroSchema;
 import com.fasterxml.jackson.dataformat.avro.schema.AvroSchemaGenerator;
 
-
-public class NestedMapTest {
-	
+public class NestedMapTest extends AvroTestBase
+{
 	public static class Nester {
 		@JsonProperty
 		public Map<String,Map<String,Integer>> nested;
 	}
-	
-	@Test
-	public void testSerialization() throws IOException {
 
-
+	public void testSerialization() throws IOException
+	{
 		Nester fromJson = new ObjectMapper().readValue(
 				"{\"nested\": {\"map\":{\"value\":1}}}"
 				, Nester.class);
@@ -35,8 +32,7 @@ public class NestedMapTest {
 		AvroSchemaGenerator gen = new AvroSchemaGenerator();
 		mapper.acceptJsonFormatVisitor(Nester.class, gen);
 		Schema schema = gen.getGeneratedSchema().getAvroSchema(); 
-		
-		
+
 		//Serialize
 		byte[] avroData =  mapper.writer(new AvroSchema(schema))
 				.writeValueAsBytes(fromJson);
