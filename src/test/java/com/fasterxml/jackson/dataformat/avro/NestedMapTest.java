@@ -1,4 +1,4 @@
-package fasterxml.jackson.dataformat.avro;
+package com.fasterxml.jackson.dataformat.avro;
 
 import static org.junit.Assert.assertEquals;
 
