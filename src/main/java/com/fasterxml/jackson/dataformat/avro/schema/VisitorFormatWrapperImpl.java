@@ -148,7 +148,7 @@ public class VisitorFormatWrapperImpl
     @Override
     public JsonAnyFormatVisitor expectAnyFormat(JavaType convertedType) {
         // could theoretically create union of all possible types but...
-        return _throwUnsupported("'Any' type not supported yet");
+        return _throwUnsupported("'Any' type not supported: expectAnyFormat called with type "+convertedType);
     }
 
     /*
