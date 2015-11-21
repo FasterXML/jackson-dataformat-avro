@@ -15,9 +15,12 @@ Sterling Hoeree (shoeree@github)
   JsonGenerator.Feature.IGNORE_UNKNOWN = true
  (2.5.5)
 
+Peter Royal (osi@github)
+
+- Reported #26: Should indicate type that was requested when complaining about Any not being supported
+ (2.6.4)
+
 Alex Dubov (oakad@github)
 
 - Contributed #21: Add AVRO_BUFFERING feature (enabled by default/existing behavior)
  (2.6.1)
-
-
