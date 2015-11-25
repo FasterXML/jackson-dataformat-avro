@@ -19,3 +19,5 @@ Peter Royal (osi@github)
 
 - Reported #26: Should indicate type that was requested when complaining about Any not being supported
  (2.6.4)
+- Contributed #27: Support serialization of `BigDecimal` values
+ (2.6.4)

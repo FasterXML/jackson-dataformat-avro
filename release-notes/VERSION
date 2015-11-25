@@ -10,6 +10,8 @@ Project: jackson-dataformat-avro
  (reported by shoeree@github, cresny@github)
 #26: Should indicate type that was requested when complaining about Any not being supported
  (reported by Peter R)
+#27: Support serialization of `BigDecimal` values
+ (contributed by Peter R)
 
 2.6.3 (12-Oct-2015)
 2.6.2 (15-Sep-2015)
