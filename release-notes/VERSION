@@ -4,7 +4,7 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
-2.6.4 (not yet released)
+2.6.4 (07-Dec-2015)
 
 #23: MapWriteContext.createChildObjectContext() should call _schema.getValueType()
  (reported by shoeree@github, cresny@github)
