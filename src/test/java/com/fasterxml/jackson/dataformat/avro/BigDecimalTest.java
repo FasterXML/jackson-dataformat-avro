@@ -15,9 +15,6 @@ public class BigDecimalTest extends TestCase
         AvroMapper mapper = new AvroMapper();
         AvroSchema schema = mapper.schemaFor(NamedAmount.class);
 
-if (true) return; // temporary work-around        
-        
-        
         byte[] bytes = mapper.writer(schema)
                 .writeValueAsBytes(new NamedAmount("peter", 42.0));
 
