@@ -112,7 +112,7 @@ public class RecordVisitor
         final SerializerProvider prov = getProvider();
         if (ser == null) {
             if (prov == null) {
-                throw new JsonMappingException("SerializerProvider missing for RecordVisitor");
+                throw JsonMappingException.from(prov, "SerializerProvider missing for RecordVisitor");
             }
             ser = prov.findValueSerializer(prop.getType(), prop);
         }
