@@ -58,8 +58,11 @@ public abstract class AvroParser extends ParserBase
             _mask = (1 << ordinal());
         }
 
+        @Override
         public boolean enabledByDefault() { return _defaultState; }
+        @Override
         public int getMask() { return _mask; }
+        @Override
         public boolean enabledIn(int flags) { return (flags & _mask) != 0; }
     }
 

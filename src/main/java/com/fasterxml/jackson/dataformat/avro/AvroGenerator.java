@@ -21,6 +21,7 @@ public class AvroGenerator extends GeneratorBase
     public enum Feature
         implements FormatFeature // since 2.7
     {
+        // !!! TODO: remove from 2.8
         /**
          * Feature that can be enabled to quietly ignore serialization of properties
          * that can not be mapped to output schema: if enabled, trying to output
@@ -71,13 +72,14 @@ public class AvroGenerator extends GeneratorBase
             _defaultState = defaultState;
             _mask = (1 << ordinal());
         }
-        
+
+        @Override
         public boolean enabledByDefault() { return _defaultState; }
+
+        @Override
         public int getMask() { return _mask; }
 
-        /**
-         * @since 2.5
-         */
+        @Override
         public boolean enabledIn(int flags) { return (flags & _mask) != 0; }
     }
     
