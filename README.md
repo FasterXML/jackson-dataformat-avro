@@ -1,5 +1,8 @@
 # Overview
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/)
+[![Javadoc](https://javadoc-emblem.rhcloud.com/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/badge.svg)](http://www.javadoc.io/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-avro)
+
 This project contains [Jackson](http://http://wiki.fasterxml.com/JacksonHome) extension component for reading and writing data encoded using
 [Apache Avro](http://avro.apache.org/) data format.
 
