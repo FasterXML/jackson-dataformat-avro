@@ -1,5 +1,6 @@
 # Overview
 
+[![Build Status](https://travis-ci.org/FasterXML/jackson-dataformat-avro.svg?branch=master)](https://travis-ci.org/FasterXML/jackson-dataformat-avro)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/)
 [![Javadoc](https://javadoc-emblem.rhcloud.com/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-avro/badge.svg)](http://www.javadoc.io/doc/com.fasterxml.jackson.dataformat/jackson-dataformat-avro)
 
