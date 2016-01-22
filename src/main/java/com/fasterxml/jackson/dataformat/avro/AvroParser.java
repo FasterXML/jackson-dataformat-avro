@@ -168,12 +168,13 @@ public abstract class AvroParser extends ParserBase
     
     @Override
     protected boolean loadMore() throws IOException {
-        throw new UnsupportedOperationException();
+        _reportUnsupportedOperation();
+        return false;
     }
 
     @Override
     protected void _finishString() throws IOException {
-        throw new UnsupportedOperationException();
+        _reportUnsupportedOperation();
     }
 
     @Override
