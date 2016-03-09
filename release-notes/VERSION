@@ -4,6 +4,11 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
+2.7.3 (08-Mar-2016)
+
+#35: Not able to serialize avro generated object having schema$ object
+ (reported by Anand S)
+
 2.7.2 (27-Feb-2016)
 
 - Change build to produce JDK6-compatible jar, to allow use on JDK6 runtime

@@ -27,3 +27,7 @@ Peter Royal (osi@github)
 - Contributed #27: Support serialization of `BigDecimal` values
  (2.6.4)
 
+Anand Shah (anandshah123@github)
+
+- Reported #35: Not able to serialize avro generated object having schema$ object
+ (2.7.3)
