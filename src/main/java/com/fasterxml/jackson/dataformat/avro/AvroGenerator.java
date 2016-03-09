@@ -542,6 +542,14 @@ public class AvroGenerator extends GeneratorBase
 
     @Override
     public void writeNumber(String encodedValue) throws IOException {
+        /* 08-Mar-2016, tatu: Looks like this may need to be supported, eventually,
+         *   for things like floating-point (Decimal) types. But, for now,
+         *   let's at least handle null.
+         */
+        if (encodedValue == null) {
+            writeNull();
+            return;
+        }
         throw new UnsupportedOperationException("Can not write 'untyped' numbers");
     }
 

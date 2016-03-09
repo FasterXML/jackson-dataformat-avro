@@ -3,7 +3,6 @@ package com.fasterxml.jackson.dataformat.avro;
 import java.util.*;
 
 import org.apache.avro.specific.SpecificRecordBase;
-import org.codehaus.jackson.map.BeanProperty;
 
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.SerializationConfig;
