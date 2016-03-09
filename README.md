@@ -24,7 +24,7 @@ To use this extension on Maven-based projects, use following dependency:
 <dependency>
   <groupId>com.fasterxml.jackson.dataformat</groupId>
   <artifactId>jackson-dataformat-avro</artifactId>
-  <version>2.4.3</version>
+  <version>2.87.2</version>
 </dependency>
 ```
 
@@ -63,11 +63,19 @@ peek at "Generating Avro Schema from POJO definition" section below; otherwise k
 
 (note: although you can use Streaming API -- if you really want -- it is unlikely to be very interesting to use directly)
 
-Usage is as with basic `JsonFactory`; most commonly you will just construct a standard `ObjectMapper` with `com.fasterxml.jackson.dataformat.avro.AvroFactory`, like so:
+Usage is as with basic `ObjectMapper`, but usually you will construct subtype `AvroMapper`
+like so:
 
 ```java
-ObjectMapper mapper = new ObjectMapper(new AvroFactory());
+AvroMapper mapper = new AvroMapper();
 ```
+
+since although it is possible to simply construct regular `ObjectMapper` with `AvroFactory`
+there are some additional features enabled by and exposed via `AvroMapper`:
+
+1. Ability to construct `AvroSchema` instances with `schemaFrom()` (read textual Avro schema) and `schemaFor()` (generate schema for given Java classes)
+2. Support for some Avro-specific datatypes (specifically, serialization "native" Avro schema `org.apache.avro.Schema`)
+3. Ignoral of internal pseudo-properties for Avro-generated value classes (included since 2.7.3)
 
 ## Reading Avro data
 
@@ -160,4 +168,4 @@ or object identity.
 
 # Documentation
 
-* [Documentation](jackson-dataformat-avro/wiki/Documentation) IS TO BE WRITTEN
+Nothing much yet -- contributions welcome!

@@ -26,6 +26,10 @@ public class AvroModule extends SimpleModule
         addSerializer(new SchemaSerializer());
     }
 
+    /**
+     * @deprecated since 2.7
+     */
+    @Deprecated // 08-Mar-2016, tatu: How on earth did this end up here?!?
     public Schema schema;
 
     /*
