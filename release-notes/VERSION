@@ -8,6 +8,8 @@ Project: jackson-dataformat-avro
 
 #35: Not able to serialize avro generated object having schema$ object
  (reported by Anand S)
+#38: Problems serializing `OffsetDateTime` (Java8 date/time)
+ (reported by asmaier@github)
 
 2.7.2 (27-Feb-2016)
 
