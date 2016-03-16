@@ -4,6 +4,10 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
+2.6.6 (not yet released)
+
+#41: Problems with type `Number`, with schema
+
 2.6.5 (19-Jan-2016)
 
 No changes since 2.6.4
