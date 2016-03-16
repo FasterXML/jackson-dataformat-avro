@@ -7,8 +7,19 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 
+public class BigDecimalTest extends TestCase
+{
+    public static class NamedAmount {
+        public final String name;
+        public final BigDecimal amount;
 
-public class BigDecimalTest extends TestCase {
+        @JsonCreator
+        public NamedAmount(@JsonProperty("name") String name,
+                           @JsonProperty("amount") double amount) {
+            this.name = name;
+            this.amount = BigDecimal.valueOf(amount);
+        }
+    }
 
     @Test
     public void testSSerializeBigDecimal() throws Exception {
@@ -22,19 +33,5 @@ public class BigDecimalTest extends TestCase {
 
         assertEquals("peter", result.name);
         assertEquals(BigDecimal.valueOf(42.0), result.amount);
-    }
-
-    public static class NamedAmount {
-        public final String name;
-        public final BigDecimal amount;
-
-        @JsonCreator
-        public NamedAmount(@JsonProperty("name") String name,
-                           @JsonProperty("amount") double amount) {
-            this.name = name;
-            this.amount = BigDecimal.valueOf(amount);
-        }
-
-
     }
 }

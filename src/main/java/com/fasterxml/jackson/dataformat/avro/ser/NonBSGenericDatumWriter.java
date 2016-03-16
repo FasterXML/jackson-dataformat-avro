@@ -56,10 +56,10 @@ public class NonBSGenericDatumWriter<D>
 
 	@Override
 	protected void write(Schema schema, Object datum, Encoder out) throws IOException {
-		if(schema.getType() == Type.DOUBLE && datum instanceof BigDecimal) {
-			out.writeDouble(((BigDecimal)datum).doubleValue());
-		} else {
-			super.write(schema, datum, out);
-		}
+	    if ((schema.getType() == Type.DOUBLE) && datum instanceof BigDecimal) {
+	        out.writeDouble(((BigDecimal)datum).doubleValue());
+	    } else {
+	        super.write(schema, datum, out);
+	    }
 	}
 }

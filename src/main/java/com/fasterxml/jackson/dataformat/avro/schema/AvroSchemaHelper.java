@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.dataformat.avro.schema;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.avro.Schema;
@@ -30,7 +31,14 @@ public abstract class AvroSchemaHelper
     {
         List<Schema> schemas = new ArrayList<Schema>();
         schemas.add(Schema.create(Schema.Type.NULL));
-        schemas.add(otherSchema);
+
+        // two cases: existing union
+        if (otherSchema.getType() == Schema.Type.UNION) {
+            schemas.addAll(otherSchema.getTypes());
+        } else {
+            // and then simpler case, no union
+            schemas.add(otherSchema);
+        }
         return Schema.createUnion(schemas);
     }
 
@@ -72,6 +80,15 @@ public abstract class AvroSchemaHelper
         default:
             throw new IllegalStateException("Unrecognized number type: "+type);
         }
+    }
+
+    public static Schema anyNumberSchema()
+    {
+        return Schema.createUnion(Arrays.asList(
+                Schema.create(Schema.Type.INT),
+                Schema.create(Schema.Type.LONG),
+                Schema.create(Schema.Type.DOUBLE)
+                ));
     }
     
     protected static <T> T throwUnsupported() {
