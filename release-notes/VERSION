@@ -24,7 +24,11 @@ No changes since 2.7.0
 #21: Add AVRO_BUFFERING feature (enabled by default/existing behavior)
  (contributed by Alex D)
 
-2.6.4 (not yet released)
+2.6.5 (19-Jan-2016)
+
+No changes since 2.6.4
+
+2.6.4 (07-Dec-2015)
 
 #23: MapWriteContext.createChildObjectContext() should call _schema.getValueType()
  (reported by shoeree@github, cresny@github)
