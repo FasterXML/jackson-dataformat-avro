@@ -10,6 +10,7 @@ Project: jackson-dataformat-avro
  (reported by Anand S)
 #38: Problems serializing `OffsetDateTime` (Java8 date/time)
  (reported by asmaier@github)
+#41: Problems with type `Number`, with schema
 
 2.7.2 (27-Feb-2016)
 
