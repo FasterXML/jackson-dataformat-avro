@@ -4,7 +4,7 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
-2.7.3 (08-Mar-2016)
+2.7.3 (16-Mar-2016)
 
 #35: Not able to serialize avro generated object having schema$ object
  (reported by Anand S)
