@@ -4,6 +4,11 @@ Project: jackson-dataformat-avro
 = Releases
 ------------------------------------------------------------------------
 
+2.7.4 (not yet released)
+
+#39: Byte arrays are represented as strings in generated avro schema
+ (reported by asmaier@github)
+
 2.7.3 (16-Mar-2016)
 
 #35: Not able to serialize avro generated object having schema$ object

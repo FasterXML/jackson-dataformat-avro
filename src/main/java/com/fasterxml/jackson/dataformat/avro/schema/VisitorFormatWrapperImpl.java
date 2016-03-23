@@ -91,6 +91,20 @@ public class VisitorFormatWrapperImpl
     
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
+        // 22-Mar-2016, tatu: Actually we can detect byte[] quite easily here can't we?
+        if (convertedType.isArrayType()) {
+            JavaType vt = convertedType.getContentType();
+            if (vt.hasRawClass(Byte.TYPE)) {
+                _builder = new SchemaBuilder() {
+                    @Override
+                    public Schema builtAvroSchema() {
+                        return Schema.create(Schema.Type.BYTES);
+                    }
+                    
+                };
+                return null;
+            }
+        }
         ArrayVisitor v = new ArrayVisitor(_provider, convertedType, _schemas);
         _builder = v;
         return v;

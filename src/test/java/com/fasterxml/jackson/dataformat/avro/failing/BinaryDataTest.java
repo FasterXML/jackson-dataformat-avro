@@ -26,7 +26,7 @@ public class BinaryDataTest extends AvroTestBase
 
         byte[] ser = mapper.writer(schema).writeValueAsBytes(new FilePojo("ABC"));
         assertNotNull(ser);
-
+        
         // plus should probably also read back, right?
         FilePojo result = mapper.readerFor(FilePojo.class)
                 .with(schema)
