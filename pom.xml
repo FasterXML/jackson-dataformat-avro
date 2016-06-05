@@ -25,7 +25,7 @@ abstractions.
   <properties>
     <!-- no patch versions for annotations -->
     <version.jackson.annotations>2.6.0</version.jackson.annotations>
-    <version.jackson.core>2.6.6</version.jackson.core>
+    <version.jackson.core>2.6.7</version.jackson.core>
 
     <!-- Generate PackageVersion.java into this directory. -->
     <packageVersion.dir>com/fasterxml/jackson/dataformat/avro</packageVersion.dir>
