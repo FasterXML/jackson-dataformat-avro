@@ -8,6 +8,10 @@ Project: jackson-dataformat-avro
 
 No changes since 2.7
 
+2.7.5 (11-Jun-2016)
+
+No changes since 2.7.4
+
 2.7.4 (29-Apr-2016)
 
 #39: Byte arrays are represented as strings in generated avro schema
